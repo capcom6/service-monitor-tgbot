@@ -1,0 +1,32 @@
+telegram:
+  token:
+  chatId: -1234567890123
+  webhookUrl:
+services:
+  - name: Google
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 3
+    httpGet:
+      scheme: https
+      host: google.com
+      path: /
+      port: 443
+      httpHeaders:
+        - name: X-Header
+          value: value
+  - name: MySQL
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 3
+    tcpSocket:
+      host: localhost
+      port: 3306
+storage:
+  redis:
+    host: localhost
+    port: 6379
