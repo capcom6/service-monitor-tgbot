@@ -15,13 +15,13 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
-	"github.com/capcom6/tgbot-service-monitor/internal/config"
+	"github.com/capcom6/tgbot-service-monitor/internal/bot"
 )
 
 func main() {
-	cfg := config.GetConfig()
-
-	fmt.Printf("%+v\n", cfg)
+	if err := bot.Run(); err != nil {
+		log.Fatalln("An error occured", err)
+	}
 }
