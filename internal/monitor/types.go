@@ -2,6 +2,6 @@ package monitor
 
 import "context"
 
-type Pinger interface {
-	Ping(context.Context) error
+type Probeer interface {
+	Probe(context.Context) error
 }

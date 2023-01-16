@@ -12,7 +12,7 @@ type MonitorService struct {
 	Bot     *tgbotapi.BotAPI
 	Service config.Service
 
-	p Pinger
+	p Probeer
 }
 
 func NewMonitorService(service config.Service, bot *tgbotapi.BotAPI) *MonitorService {
@@ -22,7 +22,7 @@ func NewMonitorService(service config.Service, bot *tgbotapi.BotAPI) *MonitorSer
 	}
 
 	if !service.HTTPGet.IsEmpty() {
-		svc.p = NewHttpPinger(service.HTTPGet)
+		svc.p = NewHttpProbe(service.HTTPGet)
 	}
 
 	return &svc
@@ -48,7 +48,7 @@ func (s *MonitorService) Start(ctx context.Context) (err error) {
 			select {
 			case <-ticker.C:
 				c, cancel := context.WithTimeout(ctx, time.Duration(s.Service.TimeoutSeconds)*time.Second)
-				err = s.p.Ping(c)
+				err = s.p.Probe(c)
 				if err != nil {
 					errorLog.Println("Error of", s.Service.Name, ":", err.Error())
 				}

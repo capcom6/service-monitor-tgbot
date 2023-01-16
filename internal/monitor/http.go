@@ -9,7 +9,7 @@ import (
 	"github.com/capcom6/tgbot-service-monitor/internal/config"
 )
 
-type HttpPinger struct {
+type HttpProbe struct {
 	Host        string
 	Port        uint16
 	Scheme      string
@@ -19,13 +19,13 @@ type HttpPinger struct {
 	client *http.Client
 }
 
-func NewHttpPinger(cfg config.HTTPGet) *HttpPinger {
+func NewHttpProbe(cfg config.HTTPGet) *HttpProbe {
 	headers := make(map[string][]string, len(cfg.HTTPHeaders))
 	for _, v := range cfg.HTTPHeaders {
 		headers[v.Name] = append(headers[v.Name], v.Value)
 	}
 
-	return &HttpPinger{
+	return &HttpProbe{
 		Host:        cfg.Host,
 		Port:        cfg.Port,
 		Scheme:      cfg.Scheme,
@@ -35,7 +35,7 @@ func NewHttpPinger(cfg config.HTTPGet) *HttpPinger {
 	}
 }
 
-func (p *HttpPinger) Ping(ctx context.Context) error {
+func (p *HttpProbe) Probe(ctx context.Context) error {
 	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s://%s:%d%s", p.Scheme, p.Host, p.Port, p.Path), nil)
 	if err != nil {
 		return err
