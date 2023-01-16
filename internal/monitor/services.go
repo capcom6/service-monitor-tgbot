@@ -5,19 +5,16 @@ import (
 	"time"
 
 	"github.com/capcom6/tgbot-service-monitor/internal/config"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type MonitorService struct {
-	Bot     *tgbotapi.BotAPI
 	Service config.Service
 
 	p Probeer
 }
 
-func NewMonitorService(service config.Service, bot *tgbotapi.BotAPI) *MonitorService {
+func NewMonitorService(service config.Service) *MonitorService {
 	svc := MonitorService{
-		Bot:     bot,
 		Service: service,
 	}
 
@@ -30,25 +27,27 @@ func NewMonitorService(service config.Service, bot *tgbotapi.BotAPI) *MonitorSer
 	return &svc
 }
 
-func (s *MonitorService) Start(ctx context.Context) (err error) {
+func (s *MonitorService) Monitor(ctx context.Context, ch ProbesChannel) (err error) {
 	if s.Service, err = s.Service.ApplyDefaultsAndValidate(); err != nil {
 		return
 	}
 
 	go func() {
-		log.Println("Init of", s.Service.Name)
+		// log.Println("Init of", s.Service.Name)
 
 		if s.Service.InitialDelaySeconds > 0 {
 			time.Sleep(time.Duration(s.Service.InitialDelaySeconds) * time.Second)
 		}
 
-		log.Println("Start of", s.Service.Name)
+		// log.Println("Start of", s.Service.Name)
 		ticker := time.NewTicker(time.Duration(s.Service.PeriodSeconds) * time.Second)
 		defer ticker.Stop()
 
 		for {
 			select {
 			case <-ticker.C:
+				// log.Println("Tick for", s.Service.Name)
+
 				c, cancel := context.WithTimeout(ctx, time.Duration(s.Service.TimeoutSeconds)*time.Second)
 				err = s.p.Probe(c)
 				if err != nil {
@@ -56,9 +55,19 @@ func (s *MonitorService) Start(ctx context.Context) (err error) {
 				}
 				cancel()
 
-				log.Println("Tick for", s.Service.Name)
+				select {
+				case ch <- ServiceProbe{
+					Id:    s.Service.Id,
+					Name:  s.Service.Name,
+					Error: err,
+				}:
+				case <-ctx.Done():
+					// log.Println("Stop of", s.Service.Name, "on write")
+					return
+				}
+
 			case <-ctx.Done():
-				log.Println("Stop of", s.Service.Name)
+				// log.Println("Stop of", s.Service.Name, "on read")
 				return
 			}
 		}

@@ -84,6 +84,7 @@ func (s TCPSocket) IsEmpty() bool {
 }
 
 type Service struct {
+	Id                  string    `yaml:"id"`
 	Name                string    `yaml:"name"`
 	InitialDelaySeconds int       `yaml:"initialDelaySeconds"` // пауза перед первым опросом в секундах, по умолчанию: 0; если меньше 0, то используется случайное значение между 0 и `periodSeconds`
 	PeriodSeconds       int       `yaml:"periodSeconds"`       // период опроса в секундах, по умолчанию: 10
