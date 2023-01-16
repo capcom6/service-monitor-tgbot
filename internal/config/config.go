@@ -41,6 +41,10 @@ func (s HTTPGet) IsEmpty() bool {
 }
 
 func (h HTTPGet) ApplyDefaultsAndValidate() (HTTPGet, error) {
+	if h.IsEmpty() {
+		return h, nil
+	}
+
 	if h.Scheme == "" {
 		if h.Port == 80 {
 			h.Scheme = "http"

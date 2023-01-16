@@ -25,7 +25,9 @@ func NewTelegramBot(cfg config.Telegram) *TelegramBot {
 func (b *TelegramBot) Api() (api *tgbotapi.BotAPI, err error) {
 	b.apiOnce.Do(func() {
 		b.api, err = tgbotapi.NewBotAPI(b.Config.Token)
-		b.api.Debug = b.Config.Debug
+		if err == nil {
+			b.api.Debug = b.Config.Debug
+		}
 	})
 
 	return b.api, err

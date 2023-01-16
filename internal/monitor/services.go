@@ -23,6 +23,8 @@ func NewMonitorService(service config.Service, bot *tgbotapi.BotAPI) *MonitorSer
 
 	if !service.HTTPGet.IsEmpty() {
 		svc.p = NewHttpProbe(service.HTTPGet)
+	} else if !service.TCPSocket.IsEmpty() {
+		svc.p = NewTcpSocketProbe(service.TCPSocket)
 	}
 
 	return &svc

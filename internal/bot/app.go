@@ -3,7 +3,6 @@ package bot
 import (
 	"context"
 	"fmt"
-	"log"
 	"math/rand"
 	"os"
 	"os/signal"
@@ -27,7 +26,9 @@ func Run() error {
 	}
 
 	for _, v := range cfg.Services {
-		monitor.NewMonitorService(v, tgapi).Start(ctx)
+		if err := monitor.NewMonitorService(v, tgapi).Start(ctx); err != nil {
+			errorLog.Printf("Can't monitor service %s: %s\n", v.Name, err.Error())
+		}
 	}
 
 	log.Println("Started")
