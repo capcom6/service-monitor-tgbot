@@ -24,11 +24,11 @@ WORKDIR /app
 
 COPY scripts/docker-entrypoint.sh /docker-entrypoint.sh
 
-# `boilerplate` should be replaced here as well
+# Copy app from build image
 COPY --from=build /go/src/app /app
 
 # Exposes port 3000 because our program listens on that port
-EXPOSE 3000
+# EXPOSE 3000
 
 USER guest
 
