@@ -29,11 +29,24 @@ type HTTPHeader struct {
 	Name  string `yaml:"name"`
 	Value string `yaml:"value"`
 }
+
+type HTTPHeaders []HTTPHeader
+
+func (h HTTPHeaders) ToMap() map[string][]string {
+	m := make(map[string][]string, len(h))
+
+	for _, v := range h {
+		m[v.Name] = append(m[v.Name], v.Value)
+	}
+
+	return m
+}
+
 type HTTPGet struct {
 	TCPSocket   `yaml:",inline"`
-	Scheme      string       `yaml:"scheme"`
-	Path        string       `yaml:"path"`
-	HTTPHeaders []HTTPHeader `yaml:"httpHeaders"`
+	Scheme      string      `yaml:"scheme"`
+	Path        string      `yaml:"path"`
+	HTTPHeaders HTTPHeaders `yaml:"httpHeaders"`
 }
 
 func (s HTTPGet) IsEmpty() bool {

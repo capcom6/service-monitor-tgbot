@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/capcom6/tgbot-service-monitor/internal/config"
+	"github.com/capcom6/tgbot-service-monitor/internal/monitor/probes"
 )
 
 type MonitorService struct {
@@ -19,9 +20,20 @@ func NewMonitorService(service config.Service) *MonitorService {
 	}
 
 	if !service.HTTPGet.IsEmpty() {
-		svc.p = NewHttpProbe(service.HTTPGet)
+		svc.p = probes.NewHttpGet(probes.HttpGetConfig{
+			TcpSocketConfig: probes.TcpSocketConfig{
+				Host: service.HTTPGet.Host,
+				Port: service.HTTPGet.Port,
+			},
+			Scheme:      service.HTTPGet.Scheme,
+			Path:        service.HTTPGet.Path,
+			HTTPHeaders: service.HTTPGet.HTTPHeaders.ToMap(),
+		})
 	} else if !service.TCPSocket.IsEmpty() {
-		svc.p = NewTcpSocketProbe(service.TCPSocket)
+		svc.p = probes.NewTcpSocket(probes.TcpSocketConfig{
+			Host: service.TCPSocket.Host,
+			Port: service.TCPSocket.Port,
+		})
 	}
 
 	return &svc
