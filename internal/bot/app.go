@@ -36,18 +36,19 @@ func Run() error {
 
 	for v := range ch {
 		log.Printf("%+v\n", v)
-		msg := tgbotapi.NewMessage(cfg.Telegram.ChatID, fmt.Sprintf("%+v", v))
+
+		msg := tgbotapi.NewMessage(cfg.Telegram.ChatID, "")
+		msg.ParseMode = tgbotapi.ModeMarkdownV2
+		if v.State == monitor.ServiceOffline {
+			msg.Text = "❌ " + v.Name + " is *offline*: " + tgbotapi.EscapeText(msg.ParseMode, v.Error.Error())
+		} else {
+			msg.Text = "✅ " + v.Name + " is *online*"
+		}
+
 		if _, err := tgapi.Send(msg); err != nil {
 			errorLog.Println(err)
 		}
-		// tgapi.Se
 	}
-
-	// for _, v := range cfg.Services {
-	// 	if err := monitor.NewMonitorService(v, tgapi).Start(ctx); err != nil {
-	// 		errorLog.Printf("Can't monitor service %s: %s\n", v.Name, err.Error())
-	// 	}
-	// }
 
 	<-ctx.Done()
 
