@@ -2,16 +2,17 @@ package monitor
 
 import (
 	"context"
-	"strconv"
+	"fmt"
 
 	"github.com/capcom6/tgbot-service-monitor/internal/config"
+	"github.com/capcom6/tgbot-service-monitor/internal/monitor/probes"
 )
 
 type MonitorModule struct {
 	Services []config.Service
 
-	monitors []*MonitorService
-	states   []ServiceState
+	probes []ProbesChannel
+	states []int
 }
 
 func NewMonitorModule(services []config.Service) *MonitorModule {
@@ -21,64 +22,105 @@ func NewMonitorModule(services []config.Service) *MonitorModule {
 }
 
 func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
-	m.monitors = make([]*MonitorService, len(m.Services))
-	m.states = make([]ServiceState, len(m.Services))
+	m.probes = make([]ProbesChannel, len(m.Services))
+	m.states = make([]int, len(m.Services))
 
-	probes := make(ProbesChannel)
 	for i, s := range m.Services {
-		// хак, чтобы обеспечить уникальность и доступ по индексу
-		// по-хорошему надо использовать внутреннюю структуру, не связанную с конфигом
-		s.Id = strconv.Itoa(i)
-
-		m.monitors[i] = NewMonitorService(s)
-		if err := m.monitors[i].Monitor(ctx, probes); err != nil {
-			close(probes)
+		cfg, err := s.ApplyDefaultsAndValidate()
+		if err != nil {
+			return nil, fmt.Errorf("invalid config for %s: %w", s.Name, err)
+		}
+		mon := NewMonitorService(ServiceMonitorConfig{
+			HttpGet: probes.HttpGetConfig{
+				TcpSocketConfig: probes.TcpSocketConfig{
+					Host: cfg.HTTPGet.TCPSocket.Host,
+					Port: cfg.HTTPGet.TCPSocket.Port,
+				},
+				Scheme:      cfg.HTTPGet.Scheme,
+				Path:        cfg.HTTPGet.Path,
+				HTTPHeaders: cfg.HTTPGet.HTTPHeaders.ToMap(),
+			},
+			TcpSocket: probes.TcpSocketConfig{
+				Host: cfg.TCPSocket.Host,
+				Port: cfg.TCPSocket.Port,
+			},
+			InitialDelaySeconds: cfg.InitialDelaySeconds,
+			PeriodSeconds:       cfg.PeriodSeconds,
+			TimeoutSeconds:      cfg.TimeoutSeconds,
+		})
+		monCh, err := mon.Monitor(ctx)
+		if err != nil {
 			return nil, err
 		}
+		m.probes[i] = monCh
 	}
 
-	ch := make(UpdatesChannel)
+	updCh := make(UpdatesChannel)
 	go func() {
-		defer close(probes)
-		defer close(ch)
-		for {
-			select {
-			case probe := <-probes:
-				if update := m.updateState(probe); update != nil {
-					ch <- *update
+		defer close(updCh)
+		for i, ch := range m.probes {
+			go func(i int, ch ProbesChannel) {
+				for {
+					select {
+					case probe := <-ch:
+						if update := m.updateState(i, probe); update != nil {
+							updCh <- *update
+						}
+					case <-ctx.Done():
+						log.Println("Probe", i, "stopped")
+						return
+					}
 				}
-			case <-ctx.Done():
-				log.Println("Monitor service stopped")
-				return
-			}
+			}(i, ch)
 		}
+
+		<-ctx.Done()
+		log.Println("Monitor service stopped")
 	}()
 
-	return ch, nil
+	return updCh, nil
 }
 
-func (m *MonitorModule) updateState(probe ServiceProbe) *ServiceStatus {
-	id, _ := strconv.Atoi(probe.Id)
+func (m *MonitorModule) updateState(id int, probe error) *ServiceStatus {
+	service := m.Services[id]
 	current := m.states[id]
 
-	if current != ServiceOnline && probe.Error == nil {
-		m.states[id] = ServiceOnline
-		return &ServiceStatus{
-			Id:    m.Services[id].Id,
-			Name:  m.Services[id].Name,
+	delta := 1
+	if probe != nil {
+		delta = -1
+	}
+
+	if current > 0 && delta > 0 {
+		// защита от переполнения
+		if current <= service.SuccessThreshold {
+			current += delta
+		}
+	} else if current < 0 && delta < 0 {
+		if current >= -service.FailureThreshold {
+			current += delta
+		}
+	} else {
+		current = delta
+	}
+
+	var upd *ServiceStatus
+	if current == service.SuccessThreshold {
+		upd = &ServiceStatus{
+			Id:    service.Id,
+			Name:  service.Name,
 			State: ServiceOnline,
 			Error: nil,
 		}
-	}
-	if current != ServiceOffline && probe.Error != nil {
-		m.states[id] = ServiceOffline
-		return &ServiceStatus{
-			Id:    m.Services[id].Id,
-			Name:  m.Services[id].Name,
+	} else if current == -service.FailureThreshold {
+		upd = &ServiceStatus{
+			Id:    service.Id,
+			Name:  service.Name,
 			State: ServiceOffline,
-			Error: probe.Error,
+			Error: probe,
 		}
 	}
 
-	return nil
+	m.states[id] = current
+
+	return upd
 }

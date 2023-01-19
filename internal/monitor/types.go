@@ -20,11 +20,5 @@ type ServiceStatus struct {
 	Error error
 }
 
-type ServiceProbe struct {
-	Id    string
-	Name  string
-	Error error
-}
-
-type ProbesChannel chan ServiceProbe
+type ProbesChannel chan error
 type UpdatesChannel chan ServiceStatus
