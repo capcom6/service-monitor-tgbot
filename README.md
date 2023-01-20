@@ -37,15 +37,15 @@
 
   <p align="center">
     Телеграм-бот для мониторинга доступности сетевых сервисов.
-    <!-- <br />
-    <a href="https://github.com/capcom6/tgbot-service-monitor/Best-README-Template"><strong>Explore the docs »</strong></a>
+    <br />
+    <!-- <a href="https://github.com/capcom6/tgbot-service-monitor"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/capcom6/tgbot-service-monitor/Best-README-Template">View Demo</a>
+    <a href="https://github.com/capcom6/tgbot-service-monitor">View Demo</a> -->
     ·
-    <a href="https://github.com/capcom6/tgbot-service-monitor/Best-README-Template/issues">Report Bug</a>
+    <a href="https://github.com/capcom6/tgbot-service-monitor/issues">Report Bug</a>
     ·
-    <a href="https://github.com/capcom6/tgbot-service-monitor/Best-README-Template/issues">Request Feature</a> -->
+    <a href="https://github.com/capcom6/tgbot-service-monitor/issues">Request Feature</a>
   </p>
 </div>
 
@@ -82,11 +82,13 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+<!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
 Мониторинг доступности сетевых сервисов - важная задача для любого проекта. При этом не всегда есть необходимость разворачивать универсальные решения типа Prometheus, а достаточно простого решения. Именно для таких случаев и был создан данный бот.
 
 Бот позволит мониторить доступность HTTP(S) и TCP сервисов и уведомлять об изменении их состояния в Telegram.
+
+Проект находится в стадии MVP.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -114,7 +116,7 @@
 1. Зарегистрируйте нового бота и получите токен для него: https://core.telegram.org/bots/features#creating-a-new-bot
 2. Создайте [канал](https://telegram.org/tour/channels) или [группу](https://telegram.org/tour/groups) в которую будут отправляться уведомления
 3. Добавьте бота в канал/группу в качестве администратора с возможностью отправки сообщений
-3. Скопируйте конфигурационный файл [config.example.yml](configs/config.example.yml) в рабочую директорию.
+3. Скопируйте конфигурационный файл [config.example.yml](configs/config.example.yml) в рабочую директорию под именем `config.yml`.
 4. Внесите изменения в конфигурационный файл:
     - укажите токен бота;
     - укажите ИД канала/группы, узнать ИД можно, например, перейдя по ссылке вида [](https://api.telegram.org/bot<token>/getUpdates?allowed_updates=[]) после добавления бота в канал/группу и найдя значение `my_chat_member.chat.id`;
@@ -128,9 +130,46 @@
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+### Пример мониторинга HTTP-сервиса
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+```yaml
+services:
+  - name: Google
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 3
+    httpGet:
+      scheme: https
+      host: google.com
+      path: /
+      port: 443
+      httpHeaders:
+        - name: X-Header
+          value: value
+```
+
+![HTTP Alert][http-alert]
+
+### Пример мониторинга TCP-сервиса
+
+```yaml
+services:
+  - name: MySQL
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 1
+    successThreshold: 1
+    failureThreshold: 3
+    tcpSocket:
+      host: localhost
+      port: 3306
+```
+
+![TCP Alert][tcp-alert]
+
+<!-- _For more examples, please refer to the [Documentation](https://example.com)_ -->
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -139,15 +178,18 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-- [x] Add Changelog
-- [x] Add back to top links
-- [ ] Add Additional Templates w/ Examples
-- [ ] Add "components" document to easily copy & paste sections of the readme
-- [ ] Multi-language Support
-    - [ ] Chinese
-    - [ ] Spanish
+- [ ] Добавить Changelog
+- [ ] Добавить возможность изменять текст сообщений
+- [ ] Отправка уведомлений в несколько каналов/групп
+- [ ] Отражение времени события в уведомлениях
+- [ ] Подсчет времени онлайн/оффлайн
+- [ ] Активный режим бота
+    - [ ] Запрос текущего состояния сервисов
+    - [ ] Отчет по SLA
+- [ ] Разделение бота и сервиса мониторинга
+- [ ] Динамический список сервисов
 
-See the [open issues](https://github.com/capcom6/tgbot-service-monitor/Best-README-Template/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/capcom6/tgbot-service-monitor/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -174,7 +216,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the Apache-2.0 license. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -183,16 +225,14 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com
-
-Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
+Project Link: [https://github.com/capcom6/tgbot-service-monitor](https://github.com/capcom6/tgbot-service-monitor)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
 <!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
+<!-- ## Acknowledgments
 
 Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
 
@@ -205,7 +245,7 @@ Use this space to list resources you find helpful and would like to give credit 
 * [Font Awesome](https://fontawesome.com)
 * [React Icons](https://react-icons.github.io/react-icons/search)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p> -->
 
 
 
@@ -221,8 +261,8 @@ Use this space to list resources you find helpful and would like to give credit 
 [issues-url]: https://github.com/capcom6/tgbot-service-monitor/issues
 [license-shield]: https://img.shields.io/github/license/capcom6/tgbot-service-monitor.svg?style=for-the-badge
 [license-url]: https://github.com/capcom6/tgbot-service-monitor/blob/master/LICENSE.txt
-[product-screenshot]: images/screenshot.png
-[Golang]: https://img.shields.io/badge/Golang-000000?style=for-the-badge&logo=go&logoColor=white
-[Golang-url]: https://go.dev/
+[product-screenshot]: assets/screenshot.png
+[http-alert]: assets/http-alert.png
+[tcp-alert]: assets/tcp-alert.png
 [Golang]: https://img.shields.io/badge/Golang-000000?style=for-the-badge&logo=go&logoColor=white
 [Golang-url]: https://go.dev/
