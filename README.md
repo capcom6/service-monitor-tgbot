@@ -185,8 +185,10 @@ services:
 - [ ] Активный режим бота
     - [ ] Запрос текущего состояния сервисов
     - [ ] Отчет по SLA
+    - [ ] Журнал событий
 - [ ] Разделение бота и сервиса мониторинга
 - [ ] Динамический список сервисов
+- [ ] Auto-discovery (в первую очередь через Docker)
 
 See the [open issues](https://github.com/capcom6/service-monitor-tgbot/issues) for a full list of proposed features (and known issues).
 
