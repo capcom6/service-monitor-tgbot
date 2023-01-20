@@ -3,6 +3,7 @@ package monitor
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/capcom6/tgbot-service-monitor/internal/config"
 	"github.com/capcom6/tgbot-service-monitor/internal/monitor/probes"
@@ -58,13 +59,22 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 	updCh := make(UpdatesChannel)
 	go func() {
 		defer close(updCh)
+
+		wg := sync.WaitGroup{}
+		wg.Add(len(m.probes))
+
 		for i, ch := range m.probes {
 			go func(i int, ch ProbesChannel) {
+				defer wg.Done()
 				for {
 					select {
 					case probe := <-ch:
 						if update := m.updateState(i, probe); update != nil {
-							updCh <- *update
+							select {
+							case updCh <- *update:
+							case <-ctx.Done():
+								return
+							}
 						}
 					case <-ctx.Done():
 						log.Println("Probe", i, "stopped")
@@ -74,6 +84,7 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 			}(i, ch)
 		}
 
+		wg.Wait()
 		<-ctx.Done()
 		log.Println("Monitor service stopped")
 	}()
