@@ -3,7 +3,7 @@ package infrastructure
 import (
 	"fmt"
 
-	"github.com/capcom6/tgbot-service-monitor/internal/config"
+	"github.com/capcom6/service-monitor-tgbot/internal/config"
 	"github.com/go-redis/redis/v9"
 )
 

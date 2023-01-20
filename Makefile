@@ -1,4 +1,4 @@
-project_name = tgbot-service-monitor
+project_name = service-monitor-tgbot
 image_name = capcom6/$(project_name):latest
 
 extension=

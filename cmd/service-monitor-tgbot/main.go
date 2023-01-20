@@ -17,7 +17,7 @@ package main
 import (
 	"log"
 
-	"github.com/capcom6/tgbot-service-monitor/internal/bot"
+	"github.com/capcom6/service-monitor-tgbot/internal/bot"
 )
 
 func main() {

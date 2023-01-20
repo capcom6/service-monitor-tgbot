@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/capcom6/tgbot-service-monitor/internal/config"
-	"github.com/capcom6/tgbot-service-monitor/internal/infrastructure"
-	"github.com/capcom6/tgbot-service-monitor/internal/monitor"
+	"github.com/capcom6/service-monitor-tgbot/internal/config"
+	"github.com/capcom6/service-monitor-tgbot/internal/infrastructure"
+	"github.com/capcom6/service-monitor-tgbot/internal/monitor"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 

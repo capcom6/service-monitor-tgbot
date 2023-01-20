@@ -33,7 +33,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           file: build/package/Dockerfile
-          build-args: APP=tgbot-service-monitor
+          build-args: APP=service-monitor-tgbot
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/capcom6/tgbot-service-monitor/internal/config"
-	"github.com/capcom6/tgbot-service-monitor/internal/monitor/probes"
+	"github.com/capcom6/service-monitor-tgbot/internal/config"
+	"github.com/capcom6/service-monitor-tgbot/internal/monitor/probes"
 )
 
 type MonitorModule struct {

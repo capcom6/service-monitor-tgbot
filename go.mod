@@ -1,4 +1,4 @@
-module github.com/capcom6/tgbot-service-monitor
+module github.com/capcom6/service-monitor-tgbot
 
 go 1.18
 

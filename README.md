@@ -1,4 +1,3 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/capcom6/tgbot-service-monitor/Best-README-Template/pull/73 -->
 <a name="readme-top"></a>
 <!--
 *** Thanks for checking out the Best-README-Template. If you have a suggestion
@@ -29,7 +28,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/capcom6/tgbot-service-monitor">
+  <a href="https://github.com/capcom6/service-monitor-tgbot">
     <img src="assets/logo.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -38,14 +37,14 @@
   <p align="center">
     Телеграм-бот для мониторинга доступности сетевых сервисов.
     <br />
-    <!-- <a href="https://github.com/capcom6/tgbot-service-monitor"><strong>Explore the docs »</strong></a>
+    <!-- <a href="https://github.com/capcom6/service-monitor-tgbot"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/capcom6/tgbot-service-monitor">View Demo</a> -->
+    <a href="https://github.com/capcom6/service-monitor-tgbot">View Demo</a> -->
     ·
-    <a href="https://github.com/capcom6/tgbot-service-monitor/issues">Report Bug</a>
+    <a href="https://github.com/capcom6/service-monitor-tgbot/issues">Report Bug</a>
     ·
-    <a href="https://github.com/capcom6/tgbot-service-monitor/issues">Request Feature</a>
+    <a href="https://github.com/capcom6/service-monitor-tgbot/issues">Request Feature</a>
   </p>
 </div>
 
@@ -119,7 +118,7 @@
 3. Скопируйте конфигурационный файл [config.example.yml](configs/config.example.yml) в рабочую директорию под именем `config.yml`.
 4. Внесите изменения в конфигурационный файл:
     - укажите токен бота;
-    - укажите ИД канала/группы, узнать ИД можно, например, перейдя по ссылке вида [](https://api.telegram.org/bot<token>/getUpdates?allowed_updates=[]) после добавления бота в канал/группу и найдя значение `my_chat_member.chat.id`;
+    - укажите ИД канала/группы, узнать ИД можно, например, перейдя по ссылке вида [https://api.telegram.org/bot<token>/getUpdates?allowed_updates=[]](https://api.telegram.org/bot<token>/getUpdates?allowed_updates=[]) после добавления бота в канал/группу и найдя значение `my_chat_member.chat.id`;
     - перечислите сервисы для мониторинга.
 5. Запустите docker-контейнер: `docker run -d -v "$(pwd)/config.yml:/app/config.yml:ro" --name tgbot capcom6/service-monitor-tgbot:latest`
 
@@ -189,7 +188,7 @@ services:
 - [ ] Разделение бота и сервиса мониторинга
 - [ ] Динамический список сервисов
 
-See the [open issues](https://github.com/capcom6/tgbot-service-monitor/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/capcom6/service-monitor-tgbot/issues) for a full list of proposed features (and known issues).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -225,7 +224,7 @@ Distributed under the Apache-2.0 license. See `LICENSE.txt` for more information
 <!-- CONTACT -->
 ## Contact
 
-Project Link: [https://github.com/capcom6/tgbot-service-monitor](https://github.com/capcom6/tgbot-service-monitor)
+Project Link: [https://github.com/capcom6/service-monitor-tgbot](https://github.com/capcom6/service-monitor-tgbot)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -251,16 +250,16 @@ Use this space to list resources you find helpful and would like to give credit 
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/capcom6/tgbot-service-monitor.svg?style=for-the-badge
-[contributors-url]: https://github.com/capcom6/tgbot-service-monitor/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/capcom6/tgbot-service-monitor.svg?style=for-the-badge
-[forks-url]: https://github.com/capcom6/tgbot-service-monitor/network/members
-[stars-shield]: https://img.shields.io/github/stars/capcom6/tgbot-service-monitor.svg?style=for-the-badge
-[stars-url]: https://github.com/capcom6/tgbot-service-monitor/stargazers
-[issues-shield]: https://img.shields.io/github/issues/capcom6/tgbot-service-monitor.svg?style=for-the-badge
-[issues-url]: https://github.com/capcom6/tgbot-service-monitor/issues
-[license-shield]: https://img.shields.io/github/license/capcom6/tgbot-service-monitor.svg?style=for-the-badge
-[license-url]: https://github.com/capcom6/tgbot-service-monitor/blob/master/LICENSE.txt
+[contributors-shield]: https://img.shields.io/github/contributors/capcom6/service-monitor-tgbot.svg?style=for-the-badge
+[contributors-url]: https://github.com/capcom6/service-monitor-tgbot/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/capcom6/service-monitor-tgbot.svg?style=for-the-badge
+[forks-url]: https://github.com/capcom6/service-monitor-tgbot/network/members
+[stars-shield]: https://img.shields.io/github/stars/capcom6/service-monitor-tgbot.svg?style=for-the-badge
+[stars-url]: https://github.com/capcom6/service-monitor-tgbot/stargazers
+[issues-shield]: https://img.shields.io/github/issues/capcom6/service-monitor-tgbot.svg?style=for-the-badge
+[issues-url]: https://github.com/capcom6/service-monitor-tgbot/issues
+[license-shield]: https://img.shields.io/github/license/capcom6/service-monitor-tgbot.svg?style=for-the-badge
+[license-url]: https://github.com/capcom6/service-monitor-tgbot/blob/master/LICENSE.txt
 [product-screenshot]: assets/screenshot.png
 [http-alert]: assets/http-alert.png
 [tcp-alert]: assets/tcp-alert.png
