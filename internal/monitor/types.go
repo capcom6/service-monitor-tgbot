@@ -20,5 +20,10 @@ type ServiceStatus struct {
 	Error error
 }
 
+type state struct {
+	Probes int
+	Online bool
+}
+
 type ProbesChannel chan error
 type UpdatesChannel chan ServiceStatus
