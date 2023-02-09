@@ -7,6 +7,7 @@
 
 ### Fixed
 - fake notifications in pending state
+- service name escaping
 
 ## v1.0.0
 
