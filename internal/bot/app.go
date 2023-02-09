@@ -40,9 +40,9 @@ func Run() error {
 		msg := tgbotapi.NewMessage(cfg.Telegram.ChatID, "")
 		msg.ParseMode = tgbotapi.ModeMarkdownV2
 		if v.State == monitor.ServiceOffline {
-			msg.Text = "❌ " + v.Name + " is *offline*: " + tgbotapi.EscapeText(msg.ParseMode, v.Error.Error())
+			msg.Text = "❌ " + tgbotapi.EscapeText(msg.ParseMode, v.Name) + " is *offline*: " + tgbotapi.EscapeText(msg.ParseMode, v.Error.Error())
 		} else {
-			msg.Text = "✅ " + v.Name + " is *online*"
+			msg.Text = "✅ " + tgbotapi.EscapeText(msg.ParseMode, v.Name) + " is *online*"
 		}
 
 		if _, err := tgapi.Send(msg); err != nil {

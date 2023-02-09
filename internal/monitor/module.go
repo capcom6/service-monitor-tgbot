@@ -13,7 +13,7 @@ type MonitorModule struct {
 	Services []config.Service
 
 	probes []ProbesChannel
-	states []int
+	states []state
 }
 
 func NewMonitorModule(services []config.Service) *MonitorModule {
@@ -24,7 +24,7 @@ func NewMonitorModule(services []config.Service) *MonitorModule {
 
 func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 	m.probes = make([]ProbesChannel, len(m.Services))
-	m.states = make([]int, len(m.Services))
+	m.states = make([]state, len(m.Services))
 
 	for i, s := range m.Services {
 		cfg, err := s.ApplyDefaultsAndValidate()
@@ -65,6 +65,7 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 
 		for i, ch := range m.probes {
 			go func(i int, ch ProbesChannel) {
+				log.Println("Probe", i, "started")
 				defer wg.Done()
 				for {
 					select {
@@ -101,28 +102,25 @@ func (m *MonitorModule) updateState(id int, probe error) *ServiceStatus {
 		delta = -1
 	}
 
-	if current > 0 && delta > 0 {
-		// защита от переполнения
-		if current <= service.SuccessThreshold {
-			current += delta
-		}
-	} else if current < 0 && delta < 0 {
-		if current >= -service.FailureThreshold {
-			current += delta
-		}
+	if (current.Probes > 0 && delta > 0) ||
+		(current.Probes < 0 && delta < 0) {
+		// если знак совпадает, то продолжаем
+		current.Probes += delta
 	} else {
-		current = delta
+		current.Probes = delta
 	}
 
 	var upd *ServiceStatus
-	if current == service.SuccessThreshold {
+	if !current.Online && current.Probes == service.SuccessThreshold {
+		current.Online = true
 		upd = &ServiceStatus{
 			Id:    service.Id,
 			Name:  service.Name,
 			State: ServiceOnline,
 			Error: nil,
 		}
-	} else if current == -service.FailureThreshold {
+	} else if current.Online && current.Probes == -service.FailureThreshold {
+		current.Online = false
 		upd = &ServiceStatus{
 			Id:    service.Id,
 			Name:  service.Name,

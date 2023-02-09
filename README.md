@@ -35,7 +35,7 @@
   <h3 align="center">Service Monitor Telegram Bot</h3>
 
   <p align="center">
-    Телеграм-бот для мониторинга доступности сетевых сервисов.
+    Telegram bot for monitoring the availability of network services.
     <br />
     <!-- <a href="https://github.com/capcom6/service-monitor-tgbot"><strong>Explore the docs »</strong></a>
     <br />
@@ -57,8 +57,8 @@
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
 - [Usage](#usage)
-  - [Пример мониторинга HTTP-сервиса](#пример-мониторинга-http-сервиса)
-  - [Пример мониторинга TCP-сервиса](#пример-мониторинга-tcp-сервиса)
+  - [HTTP service monitoring example](#http-service-monitoring-example)
+  - [TCP service monitoring example](#tcp-service-monitoring-example)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
@@ -69,11 +69,11 @@
 
 <!-- [![Product Name Screen Shot][product-screenshot]](https://example.com) -->
 
-Мониторинг доступности сетевых сервисов - важная задача для любого проекта. При этом не всегда есть необходимость разворачивать универсальные решения типа Prometheus, а достаточно простого решения. Именно для таких случаев и был создан данный бот.
+Monitoring the availability of network services is an important task for any project. At the same time, it is not always necessary to deploy universal solutions like Prometheus, a fairly simple solution. It is for such cases that this bot was created.
 
-Бот позволит мониторить доступность HTTP(S) и TCP сервисов и уведомлять об изменении их состояния в Telegram.
+The bot will allow you to monitor the availability of HTTP(S) and TCP services and notify Telegram about changes in their status.
 
-Проект находится в стадии MVP.
+The project is in the MVP stage.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -90,23 +90,23 @@
 <!-- GETTING STARTED -->
 ## Getting Started
 
-Для запуска бота с использованием Docker следуйте инструкциям ниже.
+Follow the instructions below to run a bot using Docker.
 
 ### Prerequisites
 
-Для запуска бота достаточно наличия Docker или иного окружения для запуска контейнеров.
+To run a bot, it is enough to have Docker or another environment for running containers.
 
 ### Installation
 
-1. Зарегистрируйте нового бота и получите токен для него: https://core.telegram.org/bots/features#creating-a-new-bot
-2. Создайте [канал](https://telegram.org/tour/channels) или [группу](https://telegram.org/tour/groups) в которую будут отправляться уведомления
-3. Добавьте бота в канал/группу в качестве администратора с возможностью отправки сообщений
-3. Скопируйте конфигурационный файл [config.example.yml](configs/config.example.yml) в рабочую директорию под именем `config.yml`.
-4. Внесите изменения в конфигурационный файл:
-    - укажите токен бота;
-    - укажите ИД канала/группы, узнать ИД можно, например, перейдя по ссылке вида [https://api.telegram.org/bot<token>/getUpdates?allowed_updates=[]](https://api.telegram.org/bot<token>/getUpdates?allowed_updates=[]) после добавления бота в канал/группу и найдя значение `my_chat_member.chat.id`;
-    - перечислите сервисы для мониторинга.
-5. Запустите docker-контейнер: `docker run -d -v "$(pwd)/config.yml:/app/config.yml:ro" --name tgbot capcom6/service-monitor-tgbot:latest`
+1. Register a new bot and get a token for it: https://core.telegram.org/bots/features#creating-a-new-bot
+2. Create a [channel](https://telegram.org/tour/channels) or [group](https://telegram.org/tour/groups) to which notifications will be sent
+3. Add the bot to the channel/group as an administrator with the ability to send messages
+4. Copy the configuration file [config.example.yml](configs/config.example.yml) to your working directory as `config.yml`
+5. Make changes to the configuration file:
+    - specify the bot token;
+    - specify the channel/group ID, you can find out the ID, for example, by following the link like [https://api.telegram.org/bot<token>/getUpdates?allowed_updates=[]](https://api.telegram.org/bot<token>/getUpdates?allowed_updates=[]) after adding the bot to a channel/group and finding the value of `my_chat_member.chat.id`;
+    - list the services to monitor.
+6. Run the docker container: `docker run -d -v "$(pwd)/config.yml:/app/config.yml:ro" --name tgbot capcom6/service-monitor-tgbot:latest`
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -115,7 +115,7 @@
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-### Пример мониторинга HTTP-сервиса
+### HTTP service monitoring example
 
 ```yaml
 services:
@@ -137,7 +137,7 @@ services:
 
 ![HTTP Alert][http-alert]
 
-### Пример мониторинга TCP-сервиса
+### TCP service monitoring example
 
 ```yaml
 services:
@@ -163,18 +163,18 @@ services:
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Добавить Changelog
-- [ ] Добавить возможность изменять текст сообщений
-- [ ] Отправка уведомлений в несколько каналов/групп
-- [ ] Отражение времени события в уведомлениях
-- [ ] Подсчет времени онлайн/оффлайн
-- [ ] Активный режим бота
-    - [ ] Запрос текущего состояния сервисов
-    - [ ] Отчет по SLA
-    - [ ] Журнал событий
-- [ ] Разделение бота и сервиса мониторинга
-- [ ] Динамический список сервисов
-- [ ] Auto-discovery (в первую очередь через Docker)
+- [x] Add Changelog
+- [ ] Add the ability to change the text of messages
+- [ ] Send notifications to multiple channels/groups
+- [ ] Display event time in notifications
+- [ ] Online/offline time count
+- [ ] Active bot mode
+     - [ ] Request current state of services
+     - [ ] SLA report
+     - [ ] The event log
+- [ ] Separation of bot and monitoring service
+- [ ] Dynamic list of services
+- [ ] Service discovery
 
 See the [open issues](https://github.com/capcom6/service-monitor-tgbot/issues) for a full list of proposed features (and known issues).
 
