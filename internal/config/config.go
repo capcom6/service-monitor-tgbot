@@ -20,11 +20,13 @@ type Config struct {
 	Storage  Storage   `yaml:"storage"`
 }
 type Telegram struct {
-	Token      string `yaml:"token" envconfig:"TELEGRAM__TOKEN" validate:"required"`
-	ChatID     int64  `yaml:"chatId" envconfig:"TELEGRAM__CHAT_ID"`
-	WebhookURL string `yaml:"webhookUrl" envconfig:"TELEGRAM__WEBHOOK_URL" validate:"required"`
-	Debug      bool   `yaml:"debug" envconfig:"TELEGRAM__DEBUG"`
+	Token      string           `yaml:"token" envconfig:"TELEGRAM__TOKEN" validate:"required"`
+	ChatID     int64            `yaml:"chatId" envconfig:"TELEGRAM__CHAT_ID"`
+	WebhookURL string           `yaml:"webhookUrl" envconfig:"TELEGRAM__WEBHOOK_URL" validate:"required"`
+	Debug      bool             `yaml:"debug" envconfig:"TELEGRAM__DEBUG"`
+	Messages   TelegramMessages `yaml:"messages"`
 }
+type TelegramMessages map[string]string
 type HTTPHeader struct {
 	Name  string `yaml:"name"`
 	Value string `yaml:"value"`
@@ -170,7 +172,7 @@ func loadConfig() Config {
 		path = "config.yml"
 	}
 
-	config := Config{}
+	config := defaultConfig
 
 	if err := fromYaml(path, &config); err != nil {
 		errorLog.Printf("couldn'n load config from %s: %s\r\n", path, err.Error())
@@ -204,6 +206,8 @@ func GetConfig() Config {
 	once.Do(func() {
 		instance = loadConfig()
 	})
+
+	log.Printf("config: %+v", instance)
 
 	return instance
 }

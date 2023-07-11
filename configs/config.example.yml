@@ -2,6 +2,9 @@ telegram:
   token: # токен бота
   chatId: -1234567890123 # ИД чата для уведомлений
   webhookUrl: # TODO: URL для получения веб-хуков, если не задан, то используется long-poll
+  messages:
+    online: "✅ {{.Name}} is *online*"
+    offline: "❌ {{.Name}} is *offline*: {{.Error}}"
 services: # список сервисов для мониторинга
   - name: Google # наименование для уведомления
     initialDelaySeconds: 5 # пауза перед первым опросом в секундах, по умолчанию: 0; если меньше 0, то используется случайное значение между 0 и `periodSeconds`
