@@ -164,7 +164,7 @@ services:
 ## Roadmap
 
 - [x] Add Changelog
-- [ ] Add the ability to change the text of messages
+- [x] Add the ability to change the text of messages
 - [ ] Send notifications to multiple channels/groups
 - [ ] Display event time in notifications
 - [ ] Online/offline time count
