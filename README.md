@@ -175,6 +175,7 @@ services:
 - [ ] Separation of bot and monitoring service
 - [ ] Dynamic list of services
 - [ ] Service discovery
+- [ ] Resource groups
 
 See the [open issues](https://github.com/capcom6/service-monitor-tgbot/issues) for a full list of proposed features (and known issues).
 
