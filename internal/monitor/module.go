@@ -7,7 +7,24 @@ import (
 
 	"github.com/capcom6/service-monitor-tgbot/internal/config"
 	"github.com/capcom6/service-monitor-tgbot/internal/monitor/probes"
+	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
+
+var Module = fx.Module(
+	"monitor",
+	fx.Decorate(func(log *zap.Logger) *zap.Logger {
+		return log.Named("monitor")
+	}),
+	fx.Provide(NewMonitorModule),
+)
+
+type MonitorModuleParams struct {
+	fx.In
+
+	Config config.Monitor
+	Logger *zap.Logger
+}
 
 type MonitorModule struct {
 	Services []config.Service
@@ -16,9 +33,9 @@ type MonitorModule struct {
 	states []state
 }
 
-func NewMonitorModule(services []config.Service) *MonitorModule {
+func NewMonitorModule(params MonitorModuleParams) *MonitorModule {
 	return &MonitorModule{
-		Services: services,
+		Services: params.Config.Services,
 	}
 }
 

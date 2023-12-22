@@ -1,23 +1,14 @@
 package config
 
 import (
-	"errors"
 	"fmt"
-	"io/fs"
 	"math/rand"
-	"os"
 	"strings"
-	"sync"
-
-	"github.com/joho/godotenv"
-	"github.com/kelseyhightower/envconfig"
-	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
 	Telegram Telegram  `yaml:"telegram"`
 	Services []Service `yaml:"services"`
-	Storage  Storage   `yaml:"storage"`
 }
 type Telegram struct {
 	Token      string           `yaml:"token" envconfig:"TELEGRAM__TOKEN" validate:"required"`
@@ -147,67 +138,52 @@ func (s Service) ApplyDefaultsAndValidate() (svc Service, err error) {
 	return s, nil
 }
 
-type Redis struct {
-	Host     string `yaml:"host" envconfig:"REDIS__HOST"`
-	Port     int    `yaml:"port" envconfig:"REDIS__PORT"`
-	Password string `yaml:"password" envconfig:"REDIS__PASSWORD"`
-	DB       int    `yaml:"db" envconfig:"REDIS__DB"`
-}
-type Storage struct {
-	Redis Redis `yaml:"redis"`
+type Monitor struct {
+	Services []Service `yaml:"services"`
 }
 
-var instance Config
-var once = sync.Once{}
+// func loadConfig() Config {
+// 	if err := godotenv.Load(".env"); err != nil {
+// 		if !errors.Is(err, fs.ErrNotExist) {
+// 			errorLog.Println(err)
+// 		}
+// 	}
 
-func loadConfig() Config {
-	if err := godotenv.Load(".env"); err != nil {
-		if !errors.Is(err, fs.ErrNotExist) {
-			errorLog.Println(err)
-		}
-	}
+// 	path := os.Getenv("CONFIG_PATH")
+// 	if path == "" {
+// 		path = "config.yml"
+// 	}
 
-	path := os.Getenv("CONFIG_PATH")
-	if path == "" {
-		path = "config.yml"
-	}
+// 	config := defaultConfig
 
-	config := defaultConfig
+// 	if err := fromYaml(path, &config); err != nil {
+// 		errorLog.Printf("couldn'n load config from %s: %s\r\n", path, err.Error())
+// 	}
 
-	if err := fromYaml(path, &config); err != nil {
-		errorLog.Printf("couldn'n load config from %s: %s\r\n", path, err.Error())
-	}
+// 	if err := fromEnv(&config); err != nil {
+// 		errorLog.Printf("couldn'n load config from env: %s\r\n", err.Error())
+// 	}
 
-	if err := fromEnv(&config); err != nil {
-		errorLog.Printf("couldn'n load config from env: %s\r\n", err.Error())
-	}
+// 	return config
+// }
 
-	return config
-}
+// func fromYaml(path string, config *Config) error {
+// 	if path == "" {
+// 		return nil
+// 	}
 
-func fromYaml(path string, config *Config) error {
-	if path == "" {
-		return nil
-	}
+// 	data, err := os.ReadFile(path)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return err
-	}
+// 	return yaml.Unmarshal(data, config)
+// }
 
-	return yaml.Unmarshal(data, config)
-}
+// func fromEnv(config *Config) error {
+// 	return envconfig.Process("", config)
+// }
 
-func fromEnv(config *Config) error {
-	return envconfig.Process("", config)
-}
-
-func GetConfig() Config {
-	once.Do(func() {
-		instance = loadConfig()
-	})
-
-	log.Printf("config: %+v", instance)
-
-	return instance
-}
+// func GetConfig() Config {
+// 	return loadConfig()
+// }

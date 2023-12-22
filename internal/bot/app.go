@@ -2,74 +2,89 @@ package bot
 
 import (
 	"context"
-	"fmt"
-	"math/rand"
-	"os"
-	"os/signal"
-	"time"
+	"sync"
 
+	"github.com/capcom6/go-infra-fx/logger"
 	"github.com/capcom6/service-monitor-tgbot/internal/config"
 	"github.com/capcom6/service-monitor-tgbot/internal/infrastructure"
 	"github.com/capcom6/service-monitor-tgbot/internal/monitor"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"go.uber.org/fx"
+	"go.uber.org/fx/fxevent"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
-func Run() error {
-	rand.Seed(time.Now().UnixNano())
+var Module = fx.Module(
+	"bot",
+	logger.Module,
+	config.Module,
+	infrastructure.Module,
+	monitor.Module,
+	fx.Provide(NewMessages),
+)
 
-	cfg := config.GetConfig()
-	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt)
-
-	messages := NewMessages(cfg.Telegram.Messages)
-	tg := infrastructure.NewTelegramBot(cfg.Telegram)
-	tgapi, err := tg.Api()
-	if err != nil {
-		return fmt.Errorf("can't init Telegram Api client: %w", err)
-	}
-
-	module := monitor.NewMonitorModule(cfg.Services)
-	ch, err := module.Monitor(ctx)
-	if err != nil {
-		return err
-	}
-
-	log.Println("Started")
-
-	for v := range ch {
-		log.Printf("%+v\n", v)
-
-		msg := tgbotapi.NewMessage(cfg.Telegram.ChatID, "")
-		msg.ParseMode = tgbotapi.ModeMarkdownV2
-		if v.State == monitor.ServiceOffline {
-			// msg.Text = "❌ " + tgbotapi.EscapeText(msg.ParseMode, v.Name) + " is *offline*: " + tgbotapi.EscapeText(msg.ParseMode, v.Error.Error())
-			context := OfflineContext{
-				OnlineContext: OnlineContext{
-					Name: tgbotapi.EscapeText(msg.ParseMode, v.Name),
+func Run() {
+	fx.New(
+		Module,
+		fx.WithLogger(func(logger *zap.Logger) fxevent.Logger {
+			logOption := fxevent.ZapLogger{Logger: logger}
+			logOption.UseLogLevel(zapcore.DebugLevel)
+			return &logOption
+		}),
+		fx.Invoke(func(lc fx.Lifecycle, logger *zap.Logger, bot *infrastructure.TelegramBot, monitorMod *monitor.MonitorModule, messages *Messages) error {
+			ctx, cancel := context.WithCancel(context.Background())
+			wg := &sync.WaitGroup{}
+			lc.Append(fx.Hook{
+				OnStart: func(ctx context.Context) error {
+					logger.Info("Started")
+					return nil
 				},
-				Error: tgbotapi.EscapeText(msg.ParseMode, v.Error.Error()),
+				OnStop: func(ctx context.Context) error {
+					cancel()
+					wg.Wait()
+					logger.Info("Stopped")
+					return nil
+				},
+			})
+
+			ch, err := monitorMod.Monitor(ctx)
+			if err != nil {
+				return err
 			}
-			msg.Text, err = messages.Render(TemplateOffline, context)
-		} else {
-			// msg.Text = "✅ " + tgbotapi.EscapeText(msg.ParseMode, v.Name) + " is *online*"
-			context := OnlineContext{
-				Name: tgbotapi.EscapeText(msg.ParseMode, v.Name),
-			}
-			msg.Text, err = messages.Render(TemplateOnline, context)
-		}
 
-		if err != nil {
-			errorLog.Println(err)
-			continue
-		}
+			wg.Add(1)
+			go func() {
+				for v := range ch {
+					logger.Debug("probe", zap.String("name", v.Name), zap.String("state", string(v.State)), zap.Error(v.Error))
 
-		if _, err := tgapi.Send(msg); err != nil {
-			errorLog.Println(err)
-		}
-	}
+					msg := ""
+					if v.State == monitor.ServiceOffline {
+						context := OfflineContext{
+							OnlineContext: OnlineContext{
+								Name: bot.EscapeText(v.Name),
+							},
+							Error: bot.EscapeText(v.Error.Error()),
+						}
+						msg, err = messages.Render(TemplateOffline, context)
+					} else {
+						context := OnlineContext{
+							Name: bot.EscapeText(v.Name),
+						}
+						msg, err = messages.Render(TemplateOnline, context)
+					}
 
-	<-ctx.Done()
+					if err != nil {
+						logger.Error("can't render template", zap.Error(err))
+						continue
+					}
 
-	log.Println("Done")
+					if err := bot.SendMessage(msg); err != nil {
+						logger.Error("can't send message", zap.Error(err))
+					}
+				}
+			}()
 
-	return nil
+			return nil
+		}),
+	).Run()
 }
