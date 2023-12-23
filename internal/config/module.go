@@ -17,11 +17,11 @@ var Module = fx.Module(
 	fx.Provide(func(cfg Config) Telegram {
 		return cfg.Telegram
 	}),
-	fx.Provide(func(cfg Config) Monitor {
-		return Monitor{
-			Services: cfg.Services,
-		}
-	}),
+	// fx.Provide(func(cfg Config) Monitor {
+	// 	return Monitor{
+	// 		Services: cfg.Services,
+	// 	}
+	// }),
 	fx.Provide(func(cfg Config) TelegramMessages {
 		return cfg.Telegram.Messages
 	}),

@@ -8,6 +8,7 @@ import (
 	"github.com/capcom6/service-monitor-tgbot/internal/config"
 	"github.com/capcom6/service-monitor-tgbot/internal/infrastructure"
 	"github.com/capcom6/service-monitor-tgbot/internal/monitor"
+	"github.com/capcom6/service-monitor-tgbot/internal/storage"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
@@ -20,6 +21,7 @@ var Module = fx.Module(
 	config.Module,
 	infrastructure.Module,
 	monitor.Module,
+	storage.Module,
 	fx.Provide(NewMessages),
 )
 

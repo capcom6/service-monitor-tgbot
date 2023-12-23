@@ -11,9 +11,9 @@ import (
 type ServiceMonitorConfig struct {
 	HttpGet             probes.HttpGetConfig
 	TcpSocket           probes.TcpSocketConfig
-	InitialDelaySeconds int
-	PeriodSeconds       int
-	TimeoutSeconds      int
+	InitialDelaySeconds uint16
+	PeriodSeconds       uint16
+	TimeoutSeconds      uint16
 }
 
 type MonitorService struct {
