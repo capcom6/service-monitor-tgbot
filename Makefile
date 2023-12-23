@@ -6,9 +6,15 @@ ifeq ($(OS),Windows_NT)
 	extension = .exe
 endif
 
-init:
+run:
+	go run ./cmd/$(project_name)/main.go
+
+init-dev:
 	go mod download \
-		&& go install github.com/pressly/goose/v3/cmd/goose@latest \
+		&& go install github.com/cosmtrek/air@latest
+
+init: init-dev
+	go mod download \
 		&& go install github.com/cosmtrek/air@latest
 
 air:
@@ -29,5 +35,14 @@ api-docs:
 
 view-docs:
 	php -S 127.0.0.1:8080 -t ./api
+
+docker-build:
+	docker build -f build/package/Dockerfile -t $(image_name) --build-arg APP=$(project_name) .
+
+docker:
+	docker-compose -f deployments/docker-compose/docker-compose.yml up --build
+
+docker-dev:
+	docker-compose -f deployments/docker-compose/docker-compose.dev.yml up --build
 
 .PHONY: init air db-upgrade db-upgrade-raw test api-docs view-docs

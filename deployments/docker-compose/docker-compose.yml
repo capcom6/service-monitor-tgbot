@@ -1,0 +1,16 @@
+version: '3'
+services:
+  bot:
+    image: capcom6/service-monitor-tgbot
+    build:
+      context: ../..
+      dockerfile: ./build/package/Dockerfile
+      args:
+        - APP=service-monitor-tgbot
+    env_file:
+      - ../../.env
+    environment:
+      - CONFIG_PATH=config.yml
+    stop_signal: SIGINT
+    volumes:
+      - ../../configs/config.yml:/app/config.yml:ro
