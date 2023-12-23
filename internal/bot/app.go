@@ -54,6 +54,7 @@ func Run() {
 
 			wg.Add(1)
 			go func() {
+				defer wg.Done()
 				for v := range ch {
 					logger.Debug("probe", zap.String("name", v.Name), zap.String("state", string(v.State)), zap.Error(v.Error))
 
