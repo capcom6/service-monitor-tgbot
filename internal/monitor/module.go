@@ -28,6 +28,7 @@ type MonitorModuleParams struct {
 
 type MonitorModule struct {
 	Services []config.Service
+	Logger   *zap.Logger
 
 	probes []ProbesChannel
 	states []state
@@ -36,6 +37,7 @@ type MonitorModule struct {
 func NewMonitorModule(params MonitorModuleParams) *MonitorModule {
 	return &MonitorModule{
 		Services: params.Config.Services,
+		Logger:   params.Logger,
 	}
 }
 
@@ -82,7 +84,7 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 
 		for i, ch := range m.probes {
 			go func(i int, ch ProbesChannel) {
-				log.Println("Probe", i, "started")
+				m.Logger.Info("Starting probe", zap.Int("id", i))
 				defer wg.Done()
 				for {
 					select {
@@ -95,7 +97,7 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 							}
 						}
 					case <-ctx.Done():
-						log.Println("Probe", i, "stopped")
+						m.Logger.Info("Stopping probe", zap.Int("id", i))
 						return
 					}
 				}
@@ -104,7 +106,7 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 
 		wg.Wait()
 		<-ctx.Done()
-		log.Println("Monitor service stopped")
+		m.Logger.Info("Monitor service stopped")
 	}()
 
 	return updCh, nil
