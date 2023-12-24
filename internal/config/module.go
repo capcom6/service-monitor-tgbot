@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/capcom6/go-infra-fx/config"
+	"github.com/capcom6/service-monitor-tgbot/internal/storage"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -17,12 +18,12 @@ var Module = fx.Module(
 	fx.Provide(func(cfg Config) Telegram {
 		return cfg.Telegram
 	}),
-	// fx.Provide(func(cfg Config) Monitor {
-	// 	return Monitor{
-	// 		Services: cfg.Services,
-	// 	}
-	// }),
 	fx.Provide(func(cfg Config) TelegramMessages {
 		return cfg.Telegram.Messages
+	}),
+	fx.Provide(func(cfg Config) storage.Config {
+		return storage.Config{
+			DSN: cfg.Storage.DSN,
+		}
 	}),
 )

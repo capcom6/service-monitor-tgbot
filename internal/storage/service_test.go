@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"reflect"
 	"testing"
 )
@@ -55,7 +56,7 @@ type mockStorage struct {
 	Error    error
 }
 
-func (m *mockStorage) Load() ([]Service, error) {
+func (m *mockStorage) Select(ctx context.Context) ([]Service, error) {
 	return m.Services, m.Error
 }
 
@@ -97,7 +98,7 @@ func TestStorageService_Load(t *testing.T) {
 			s := &StorageService{
 				storage: tt.fields.storage,
 			}
-			got, err := s.Load()
+			got, err := s.Select(context.TODO())
 			if (err != nil) != tt.wantErr {
 				t.Errorf("StorageService.Load() error = %v, wantErr %v", err, tt.wantErr)
 				return

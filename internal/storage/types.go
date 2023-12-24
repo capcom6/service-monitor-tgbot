@@ -5,16 +5,20 @@ import (
 	"math/rand"
 )
 
+type Config struct {
+	DSN string
+}
+
 type Service struct {
-	Id                  string    `yaml:"id" validate:"required"`
-	Name                string    `yaml:"name" validate:"required"`
-	InitialDelaySeconds int32     `yaml:"initialDelaySeconds"`              // пауза перед первым опросом в секундах, по умолчанию: 0; если меньше 0, то используется случайное значение между 0 и `periodSeconds`
-	PeriodSeconds       uint16    `yaml:"periodSeconds" validate:"gt=0"`    // период опроса в секундах, по умолчанию: 10
-	TimeoutSeconds      uint16    `yaml:"timeoutSeconds" validate:"gt=0"`   // время ожидания ответа в секундах, по кмолчанию: 1
-	SuccessThreshold    uint8     `yaml:"successThreshold" validate:"gt=0"` // количество последовательных успешных соединений для перехода в состояние "в сети", по умолчанию: 1
-	FailureThreshold    uint8     `yaml:"failureThreshold" validate:"gt=0"` // количество последовательных ошибок соединения для перехода в состояние "не в сети", по умолчанию: 3
-	HTTPGet             HTTPGet   `yaml:"httpGet,omitempty" validate:"required_without=TCPSocket"`
-	TCPSocket           TCPSocket `yaml:"tcpSocket,omitempty" validate:"required_without=HTTPGet"`
+	Id                  string    `yaml:"id" json:"id" validate:"required"`
+	Name                string    `yaml:"name" json:"name" validate:"required"`
+	InitialDelaySeconds int32     `yaml:"initialDelaySeconds" json:"initialDelaySeconds"`           // пауза перед первым опросом в секундах, по умолчанию: 0; если меньше 0, то используется случайное значение между 0 и `periodSeconds`
+	PeriodSeconds       uint16    `yaml:"periodSeconds" json:"periodSeconds" validate:"gt=0"`       // период опроса в секундах, по умолчанию: 10
+	TimeoutSeconds      uint16    `yaml:"timeoutSeconds" json:"timeoutSeconds" validate:"gt=0"`     // время ожидания ответа в секундах, по кмолчанию: 1
+	SuccessThreshold    uint8     `yaml:"successThreshold" json:"successThreshold" validate:"gt=0"` // количество последовательных успешных соединений для перехода в состояние "в сети", по умолчанию: 1
+	FailureThreshold    uint8     `yaml:"failureThreshold" json:"failureThreshold" validate:"gt=0"` // количество последовательных ошибок соединения для перехода в состояние "не в сети", по умолчанию: 3
+	HTTPGet             HTTPGet   `yaml:"httpGet,omitempty" json:"httpGet,omitempty" validate:"required_without=TCPSocket"`
+	TCPSocket           TCPSocket `yaml:"tcpSocket,omitempty" json:"tcpSocket,omitempty" validate:"required_without=HTTPGet"`
 }
 
 func (s *Service) Validate() error {
@@ -51,10 +55,10 @@ func (s *Service) Validate() error {
 }
 
 type HTTPGet struct {
-	TCPSocket   `yaml:",inline"`
-	Scheme      string      `yaml:"scheme"`
-	Path        string      `yaml:"path"`
-	HTTPHeaders HTTPHeaders `yaml:"httpHeaders"`
+	TCPSocket   `yaml:",inline" json:",inline"`
+	Scheme      string      `yaml:"scheme" json:"scheme"`
+	Path        string      `yaml:"path" json:"path"`
+	HTTPHeaders HTTPHeaders `yaml:"httpHeaders" json:"httpHeaders"`
 }
 
 func (s *HTTPGet) Validate() error {
@@ -81,13 +85,13 @@ func (s *HTTPGet) Validate() error {
 type HTTPHeaders []HTTPHeader
 
 type HTTPHeader struct {
-	Name  string `yaml:"name" validate:"required"`
-	Value string `yaml:"value" validate:"required"`
+	Name  string `yaml:"name" json:"name" validate:"required"`
+	Value string `yaml:"value" json:"value" validate:"required"`
 }
 
 type TCPSocket struct {
-	Host string `yaml:"host" validate:"required,hostname"`
-	Port uint16 `yaml:"port"`
+	Host string `yaml:"host" json:"host" validate:"required,hostname"`
+	Port uint16 `yaml:"port" json:"port" validate:"gt=0"`
 }
 
 func (s TCPSocket) IsEmpty() bool {

@@ -1,7 +1,9 @@
 package storage
 
+import "context"
+
 type Storage interface {
-	Load() ([]Service, error)
+	Select(context.Context) ([]Service, error)
 }
 
 type StorageService struct {
@@ -14,8 +16,8 @@ func NewStorageService(storage Storage) *StorageService {
 	}
 }
 
-func (s *StorageService) Load() ([]Service, error) {
-	services, err := s.storage.Load()
+func (s *StorageService) Select(ctx context.Context) ([]Service, error) {
+	services, err := s.storage.Select(ctx)
 	if err != nil {
 		return nil, err
 	}

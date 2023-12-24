@@ -1,7 +1,8 @@
 package storage
 
 import (
-	"errors"
+	"context"
+	"net/url"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -15,7 +16,18 @@ type yamlStorage struct {
 	Path string
 }
 
-func (s *yamlStorage) Load() ([]Service, error) {
+func newYamlStorage(u *url.URL) (*yamlStorage, error) {
+	path := u.Path
+	if u.Host == "." {
+		path = "./" + path
+	}
+
+	return &yamlStorage{
+		Path: path,
+	}, nil
+}
+
+func (s *yamlStorage) Select(ctx context.Context) ([]Service, error) {
 	data, err := os.ReadFile(s.Path)
 	if err != nil {
 		return nil, err
@@ -27,14 +39,4 @@ func (s *yamlStorage) Load() ([]Service, error) {
 	}
 
 	return root.Services, nil
-}
-
-func newYamlStorage(path string) (*yamlStorage, error) {
-	if path == "" {
-		return nil, errors.New("path is empty")
-	}
-
-	return &yamlStorage{
-		Path: path,
-	}, nil
 }

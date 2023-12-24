@@ -37,7 +37,7 @@ type MonitorModule struct {
 }
 
 func NewMonitorModule(params MonitorModuleParams) (*MonitorModule, error) {
-	services, err := params.Storage.Load()
+	services, err := params.Storage.Select(context.TODO())
 	if err != nil {
 		return nil, fmt.Errorf("failed to load services: %w", err)
 	}
