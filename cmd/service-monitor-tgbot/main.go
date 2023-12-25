@@ -15,13 +15,9 @@
 package main
 
 import (
-	"log"
-
 	"github.com/capcom6/service-monitor-tgbot/internal/bot"
 )
 
 func main() {
-	if err := bot.Run(); err != nil {
-		log.Fatalln("An error occured", err)
-	}
+	bot.Run()
 }

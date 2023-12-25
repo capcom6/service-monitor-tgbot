@@ -14,7 +14,6 @@ var (
 			Debug:      false,
 			Messages:   defaultTelegramMessages,
 		},
-		Services: []Service{},
-		Storage:  Storage{},
+		// Services: []Service{},
 	}
 )

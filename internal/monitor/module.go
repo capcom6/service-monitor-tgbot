@@ -5,32 +5,55 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/capcom6/service-monitor-tgbot/internal/config"
 	"github.com/capcom6/service-monitor-tgbot/internal/monitor/probes"
+	"github.com/capcom6/service-monitor-tgbot/internal/storage"
+	"github.com/capcom6/service-monitor-tgbot/pkg/collections"
+	"go.uber.org/fx"
+	"go.uber.org/zap"
 )
 
+var Module = fx.Module(
+	"monitor",
+	fx.Decorate(func(log *zap.Logger) *zap.Logger {
+		return log.Named("monitor")
+	}),
+	fx.Provide(NewMonitorModule),
+)
+
+type MonitorModuleParams struct {
+	fx.In
+
+	Storage storage.Storage
+	Logger  *zap.Logger
+}
+
 type MonitorModule struct {
-	Services []config.Service
+	Storage  storage.Storage
+	Services []storage.Service
+	Logger   *zap.Logger
 
 	probes []ProbesChannel
 	states []state
 }
 
-func NewMonitorModule(services []config.Service) *MonitorModule {
-	return &MonitorModule{
-		Services: services,
+func NewMonitorModule(params MonitorModuleParams) (*MonitorModule, error) {
+	services, err := params.Storage.Load()
+	if err != nil {
+		return nil, fmt.Errorf("failed to load services: %w", err)
 	}
+
+	return &MonitorModule{
+		Storage:  params.Storage,
+		Services: services,
+		Logger:   params.Logger,
+	}, nil
 }
 
 func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 	m.probes = make([]ProbesChannel, len(m.Services))
 	m.states = make([]state, len(m.Services))
 
-	for i, s := range m.Services {
-		cfg, err := s.ApplyDefaultsAndValidate()
-		if err != nil {
-			return nil, fmt.Errorf("invalid config for %s: %w", s.Name, err)
-		}
+	for i, cfg := range m.Services {
 		mon := NewMonitorService(ServiceMonitorConfig{
 			HttpGet: probes.HttpGetConfig{
 				TcpSocketConfig: probes.TcpSocketConfig{
@@ -39,13 +62,13 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 				},
 				Scheme:      cfg.HTTPGet.Scheme,
 				Path:        cfg.HTTPGet.Path,
-				HTTPHeaders: cfg.HTTPGet.HTTPHeaders.ToMap(),
+				HTTPHeaders: collections.GroupBy(cfg.HTTPGet.HTTPHeaders, func(h storage.HTTPHeader) (string, string) { return h.Name, h.Value }),
 			},
 			TcpSocket: probes.TcpSocketConfig{
 				Host: cfg.TCPSocket.Host,
 				Port: cfg.TCPSocket.Port,
 			},
-			InitialDelaySeconds: cfg.InitialDelaySeconds,
+			InitialDelaySeconds: uint16(cfg.InitialDelaySeconds),
 			PeriodSeconds:       cfg.PeriodSeconds,
 			TimeoutSeconds:      cfg.TimeoutSeconds,
 		})
@@ -65,7 +88,7 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 
 		for i, ch := range m.probes {
 			go func(i int, ch ProbesChannel) {
-				log.Println("Probe", i, "started")
+				m.Logger.Info("Starting probe", zap.Int("id", i))
 				defer wg.Done()
 				for {
 					select {
@@ -78,7 +101,7 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 							}
 						}
 					case <-ctx.Done():
-						log.Println("Probe", i, "stopped")
+						m.Logger.Info("Stopping probe", zap.Int("id", i))
 						return
 					}
 				}
@@ -87,7 +110,7 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 
 		wg.Wait()
 		<-ctx.Done()
-		log.Println("Monitor service stopped")
+		m.Logger.Info("Monitor service stopped")
 	}()
 
 	return updCh, nil
@@ -111,7 +134,7 @@ func (m *MonitorModule) updateState(id int, probe error) *ServiceStatus {
 	}
 
 	var upd *ServiceStatus
-	if !current.Online && current.Probes == service.SuccessThreshold {
+	if !current.Online && current.Probes == int(service.SuccessThreshold) {
 		current.Online = true
 		upd = &ServiceStatus{
 			Id:    service.Id,
@@ -119,7 +142,7 @@ func (m *MonitorModule) updateState(id int, probe error) *ServiceStatus {
 			State: ServiceOnline,
 			Error: nil,
 		}
-	} else if current.Online && current.Probes == -service.FailureThreshold {
+	} else if current.Online && current.Probes == -int(service.FailureThreshold) {
 		current.Online = false
 		upd = &ServiceStatus{
 			Id:    service.Id,

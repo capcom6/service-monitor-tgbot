@@ -1,6 +1,8 @@
 package monitor
 
-import "context"
+import (
+	"context"
+)
 
 const (
 	ServiceOnline  ServiceState = "online"
