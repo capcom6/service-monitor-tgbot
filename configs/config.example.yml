@@ -5,31 +5,5 @@ telegram:
   messages:
     online: "✅ {{.Name}} is *online*" # текст сообщения при переходе сервиса в состояние "в сети"
     offline: "❌ {{.Name}} is *offline*: {{.Error}}" # текст сообщения при переходе сервиса в состояние "не в сети"
-services: # список сервисов для мониторинга
-  - name: Google # наименование для уведомления
-    initialDelaySeconds: 5 # пауза перед первым опросом в секундах, по умолчанию: 0; если меньше 0, то используется случайное значение между 0 и `periodSeconds`
-    periodSeconds: 10 # период опроса в секундах, по умолчанию: 10
-    timeoutSeconds: 1 # время ожидания ответа в секундах, по кмолчанию: 1
-    successThreshold: 1 # количество последовательных успешных соединений для перехода в состояние "в сети", по умолчанию: 1
-    failureThreshold: 3 # количество последовательных ошибок соединения для перехода в состояние "не в сети", по умолчанию: 3
-    httpGet: # проверка HTTP(S) сервиса
-      scheme: https # схема http/https
-      host: google.com # адрес сервиса
-      path: / # путь
-      port: 443 # порт
-      httpHeaders: # дополнительные http-заголовки запроса
-        - name: X-Header # имя заголовка
-          value: value # значение заголовка
-  - name: MySQL
-    initialDelaySeconds: 5
-    periodSeconds: 10
-    timeoutSeconds: 1
-    successThreshold: 1
-    failureThreshold: 3
-    tcpSocket: # проверка TCP-порта
-      host: localhost # адрес сервиса
-      port: 3306 # порт
-storage: # TODO
-  redis:
-    host: localhost
-    port: 6379
+storage:
+  dsn: file://./services.yml
