@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/capcom6/service-monitor-tgbot/internal/monitor/probes"
+	"github.com/capcom6/service-monitor-tgbot/internal/monitorx/monitor/probes"
 )
 
 type ServiceMonitorConfig struct {

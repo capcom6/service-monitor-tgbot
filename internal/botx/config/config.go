@@ -2,7 +2,6 @@ package config
 
 type Config struct {
 	Telegram Telegram `yaml:"telegram"`
-	Storage  Storage  `yaml:"storage"`
 }
 
 type Telegram struct {
@@ -14,7 +13,3 @@ type Telegram struct {
 }
 
 type TelegramMessages map[string]string
-
-type Storage struct {
-	DSN string `yaml:"dsn"`
-}

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/capcom6/service-monitor-tgbot/internal/monitor/probes"
-	"github.com/capcom6/service-monitor-tgbot/internal/storage"
+	"github.com/capcom6/service-monitor-tgbot/internal/monitorx/monitor/probes"
+	"github.com/capcom6/service-monitor-tgbot/internal/monitorx/storage"
 	"github.com/capcom6/service-monitor-tgbot/pkg/collections"
 	"go.uber.org/fx"
 	"go.uber.org/zap"

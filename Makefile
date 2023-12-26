@@ -9,6 +9,12 @@ endif
 run:
 	go run ./cmd/$(project_name)/main.go
 
+monitor:
+	CONFIG_PATH=./configs/monitor.yml go run ./cmd/monitor/main.go
+
+bot:
+	go run ./cmd/bot/main.go
+
 init-dev:
 	go mod download \
 		&& go install github.com/cosmtrek/air@latest
@@ -37,7 +43,8 @@ view-docs:
 	php -S 127.0.0.1:8080 -t ./api
 
 docker-build:
-	docker build -f build/package/Dockerfile -t $(image_name) --build-arg APP=$(project_name) .
+	docker build -f build/package/Dockerfile -t capcom6/service-monior-core --build-arg APP=monitor .
+	docker build -f build/package/Dockerfile -t capcom6/service-monior-bot --build-arg APP=bot .
 
 docker:
 	docker-compose -f deployments/docker-compose/docker-compose.yml up --build
@@ -45,4 +52,4 @@ docker:
 docker-dev:
 	docker-compose -f deployments/docker-compose/docker-compose.dev.yml up --build
 
-.PHONY: init air db-upgrade db-upgrade-raw test api-docs view-docs
+.PHONY: run monitor bot init-dev init air db-upgrade db-upgrade-raw test api-docs view-docs docker docker-dev

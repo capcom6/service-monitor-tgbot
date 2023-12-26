@@ -1,7 +1,7 @@
 package infrastructure
 
 import (
-	"github.com/capcom6/service-monitor-tgbot/internal/config"
+	"github.com/capcom6/service-monitor-tgbot/internal/botx/config"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/fx"
 	"go.uber.org/zap"

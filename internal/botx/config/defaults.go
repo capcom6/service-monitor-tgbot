@@ -8,8 +8,5 @@ var (
 
 	defaultConfig Config = Config{
 		Telegram: Telegram{Token: "", ChatID: 0, WebhookURL: "", Debug: false, Messages: defaultTelegramMessages},
-		Storage: Storage{
-			DSN: "file://./config.yaml",
-		},
 	}
 )

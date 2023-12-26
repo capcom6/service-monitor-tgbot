@@ -1,4 +1,4 @@
-package bot
+package botx
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"sync"
 	"text/template"
 
-	"github.com/capcom6/service-monitor-tgbot/internal/config"
+	"github.com/capcom6/service-monitor-tgbot/internal/botx/config"
 )
 
 type TemplateName string

@@ -1,0 +1,85 @@
+name: Build Telegram Bot
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: capcom6/service-monitor-bot
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - name: Log into Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3
+        with:
+          file: build/package/Dockerfile
+          build-args: APP=bot
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
+
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   # run only in v* tags
+  #   if: startsWith(github.ref, 'refs/tags/v')
+  #   needs:
+  #     - build
+
+  #   env:
+  #     AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+  #     AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+
+  #     - name: Install Terraform
+  #       uses: hashicorp/setup-terraform@v2
+  #       with:
+  #         terraform_version: 1.4.6
+
+  #     - name: Initialize Terraform
+  #       working-directory: deployments/docker-swarm-terraform
+  #       run: terraform init
+
+  #     - name: Deploy Docker service to Swarm
+  #       working-directory: deployments/docker-swarm-terraform
+  #       env:
+  #         CPU_LIMIT: ${{ vars.CPU_LIMIT }}
+  #         MEMORY_LIMIT: ${{ vars.MEMORY_LIMIT }}
+  #       run: |
+  #         eval "$(ssh-agent -s)"
+  #         ssh-add <(echo "${{ secrets.SSH_PRIVATE_KEY }}")
+  #         terraform apply -auto-approve -input=false \
+  #         -var 'swarm-manager-host=${{ secrets.SWARM_MANAGER_HOST }}' \
+  #         -var 'app-name=${{ vars.APP_NAME }}' \
+  #         -var "app-version=${GITHUB_REF#refs/tags/v}" \
+  #         -var 'app-config-b64=${{ secrets.APP_CONFIG_B64 }}' \
+  #         -var 'app-env-json-b64=${{ secrets.APP_ENV_JSON_B64 }}' \
+  #         -var "cpu-limit=${CPU_LIMIT:-1000000000}" \
+  #         -var "memory-limit=${MEMORY_LIMIT:-128000000}"
