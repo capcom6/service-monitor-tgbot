@@ -11,7 +11,8 @@ import (
 )
 
 type EventBus interface {
-	Send(ctx context.Context, event interface{}) error
+	Send(ctx context.Context, event string) error
+	Receive(ctx context.Context) (<-chan string, error)
 }
 
 type Params struct {
@@ -22,20 +23,23 @@ type Params struct {
 }
 
 var Module = fx.Module(
-	"storage",
+	"eventbus",
+	fx.Decorate(func(log *zap.Logger) *zap.Logger {
+		return log.Named("eventbus")
+	}),
 	fx.Provide(func(p Params) (EventBus, error) {
-		return New(p.Config)
+		return New(p.Config, p.Logger)
 	}),
 )
 
-func New(cfg Config) (EventBus, error) {
+func New(cfg Config, logger *zap.Logger) (EventBus, error) {
 	u, err := url.Parse(cfg.DSN)
 	if err != nil {
 		return nil, fmt.Errorf("invalid dsn: %w", err)
 	}
 
 	if u.Scheme == "redis" || u.Scheme == "rediss" {
-		return newRedisBus(u)
+		return newRedisBus(u, logger)
 	}
 
 	return nil, errors.New("unknown scheme")

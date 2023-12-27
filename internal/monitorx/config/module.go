@@ -2,8 +2,8 @@ package config
 
 import (
 	"github.com/capcom6/go-infra-fx/config"
-	"github.com/capcom6/service-monitor-tgbot/internal/monitorx/eventbus"
 	"github.com/capcom6/service-monitor-tgbot/internal/monitorx/storage"
+	"github.com/capcom6/service-monitor-tgbot/pkg/eventbus"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )

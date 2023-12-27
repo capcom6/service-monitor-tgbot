@@ -1,4 +1,4 @@
-package infrastructure
+package telegram
 
 import (
 	"github.com/capcom6/service-monitor-tgbot/internal/botx/config"
@@ -42,35 +42,3 @@ func (b *TelegramBot) SendMessage(text string) error {
 func (b *TelegramBot) EscapeText(text string) string {
 	return tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, text)
 }
-
-// func (b *TelegramBot) Api() (*tgbotapi.BotAPI, error) {
-// 	b.mux.Lock()
-// 	defer b.mux.Unlock()
-
-// 	if b.api != nil {
-// 		return b.api, nil
-// 	}
-
-// 	api, err := tgbotapi.NewBotAPI(b.Config.Token)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	api.Debug = b.Config.Debug
-// 	b.api = api
-
-// 	return api, nil
-// }
-
-// func (b *TelegramBot) Listen(ctx context.Context) (tgbotapi.UpdatesChannel, error) {
-// 	u := tgbotapi.NewUpdate(0)
-// 	u.Timeout = 60
-// 	u.AllowedUpdates = []string{"message", "callback_query"}
-
-// 	go func() {
-// 		<-ctx.Done()
-// 		b.api.StopReceivingUpdates()
-// 	}()
-
-// 	return b.api.GetUpdatesChan(u), nil
-// }

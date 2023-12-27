@@ -13,7 +13,7 @@ monitor:
 	CONFIG_PATH=./configs/monitor.yml go run ./cmd/monitor/main.go
 
 bot:
-	go run ./cmd/bot/main.go
+	CONFIG_PATH=./configs/bot.yml go run ./cmd/bot/main.go
 
 init-dev:
 	go mod download \

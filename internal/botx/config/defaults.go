@@ -8,5 +8,8 @@ var (
 
 	defaultConfig Config = Config{
 		Telegram: Telegram{Token: "", ChatID: 0, WebhookURL: "", Debug: false, Messages: defaultTelegramMessages},
+		EventBus: EventBus{
+			DSN: "redis://localhost:6379/0?channel=events",
+		},
 	}
 )

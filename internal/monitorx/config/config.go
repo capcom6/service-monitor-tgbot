@@ -6,9 +6,9 @@ type Config struct {
 }
 
 type Storage struct {
-	DSN string `yaml:"dsn"`
+	DSN string `yaml:"dsn" envconfig:"STORAGE__DSN" validate:"required"`
 }
 
 type EventBus struct {
-	DSN string `yaml:"dsn"`
+	DSN string `yaml:"dsn" envconfig:"EVENTBUS__DSN" validate:"required"`
 }

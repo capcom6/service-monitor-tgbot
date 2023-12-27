@@ -2,6 +2,7 @@ package config
 
 type Config struct {
 	Telegram Telegram `yaml:"telegram"`
+	EventBus EventBus `yaml:"eventBus"`
 }
 
 type Telegram struct {
@@ -13,3 +14,7 @@ type Telegram struct {
 }
 
 type TelegramMessages map[string]string
+
+type EventBus struct {
+	DSN string `yaml:"dsn" envconfig:"EVENTBUS__DSN" validate:"required"`
+}
