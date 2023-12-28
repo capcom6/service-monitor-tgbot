@@ -1,59 +1,27 @@
-data "docker_registry_image" "app-image" {
-  name = "capcom6/${var.app-name}:${var.app-version}"
+module "core" {
+  source = "./modules/service"
+
+  service-name    = "service-monitor-core"
+  service-version = var.app-version
+
+  config-b64   = var.core-config-b64
+  env-json-b64 = var.core-env-json-b64
+
+  network-id = docker_network.private.id
+
+  depends_on = [docker_service.redis]
 }
 
-data "docker_network" "proxy" {
-  name = "proxy"
-}
+module "bot" {
+  source = "./modules/service"
 
+  service-name    = "service-monitor-bot"
+  service-version = var.app-version
 
-resource "docker_image" "app" {
-  name          = data.docker_registry_image.app-image.name
-  pull_triggers = [data.docker_registry_image.app-image.sha256_digest]
-  keep_locally  = true
-}
+  config-b64   = var.bot-config-b64
+  env-json-b64 = var.bot-env-json-b64
 
-resource "docker_config" "app" {
-  name = "${var.app-name}-config.yml-${replace(timestamp(), ":", ".")}"
-  data = var.app-config-b64
+  network-id = docker_network.private.id
 
-  lifecycle {
-    ignore_changes        = [name]
-    create_before_destroy = true
-  }
-}
-
-resource "docker_service" "app" {
-  name = var.app-name
-
-  task_spec {
-    container_spec {
-      image = docker_image.app.image_id
-
-      configs {
-        config_id   = docker_config.app.id
-        config_name = docker_config.app.name
-        file_name   = "/app/config.yml"
-        file_uid    = 405
-        file_gid    = 100
-      }
-
-      env = jsondecode(base64decode(var.app-env-json-b64))
-    }
-    networks_advanced {
-      name = data.docker_network.proxy.id
-    }
-
-    resources {
-      limits {
-        # nano_cpus    = var.cpu-limit
-        memory_bytes = var.memory-limit
-      }
-
-      reservation {
-        # nano_cpus    = 10 * 10000000
-        memory_bytes = 16 * 1024 * 1024
-      }
-    }
-  }
+  depends_on = [docker_service.redis]
 }
