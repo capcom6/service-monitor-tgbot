@@ -23,14 +23,11 @@ init: init-dev
 	go mod download \
 		&& go install github.com/cosmtrek/air@latest
 
-air:
-	air
+air-monitor:
+	CONFIG_PATH=./configs/monitor.yml air -c monitor.air.toml
 
-db-upgrade:
-	goose up
-
-db-upgrade-raw:
-	go run ./cmd/$(project_name)/main.go db-upgrade
+air-bot:
+	CONFIG_PATH=./configs/bot.yml air -c bot.air.toml
 
 test:
 	go test ./...
@@ -52,4 +49,4 @@ docker:
 docker-dev:
 	docker-compose -f deployments/docker-compose/docker-compose.dev.yml up --build
 
-.PHONY: run monitor bot init-dev init air db-upgrade db-upgrade-raw test api-docs view-docs docker docker-dev
+.PHONY: run monitor bot init-dev init air-monitor air-bot test api-docs view-docs docker-build docker
