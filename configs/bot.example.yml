@@ -1,0 +1,6 @@
+telegram:
+  token:
+  chatId: 337289453
+  webhookUrl:
+eventBus:
+  dsn: redis://localhost:6379/0?channel=events

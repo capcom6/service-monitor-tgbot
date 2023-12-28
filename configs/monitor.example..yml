@@ -1,0 +1,6 @@
+storage:
+  dsn: file://./configs/services.yml
+  # dsn: redis://localhost:6379/0
+  # dsn: memory://
+eventBus:
+  dsn: redis://localhost:6379/0?channel=events
