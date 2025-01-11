@@ -1,16 +1,54 @@
 version: '3'
 services:
   bot:
-    image: capcom6/service-monitor-tgbot
+    image: capcom6/service-monitor-bot
     build:
       context: ../..
       dockerfile: ./build/package/Dockerfile
       args:
-        - APP=service-monitor-tgbot
+        - APP=bot
     env_file:
       - ../../.env
     environment:
       - CONFIG_PATH=config.yml
+      - EVENTBUS__DSN=redis://redis:6379/0?channel=events
     stop_signal: SIGINT
     volumes:
-      - ../../configs/config.yml:/app/config.yml:ro
+      - ../../configs/bot.yml:/app/config.yml:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  core:
+    image: capcom6/service-monitor-monitor
+    build:
+      context: ../..
+      dockerfile: ./build/package/Dockerfile
+      args:
+        - APP=monitor
+    env_file:
+      - ../../.env
+    environment:
+      - CONFIG_PATH=config.yml
+      - EVENTBUS__DSN=redis://redis:6379/0?channel=events
+      - STORAGE__DSN=file:///app/services.yml
+    stop_signal: SIGINT
+    volumes:
+      - ../../configs/monitor.yml:/app/config.yml:ro
+      - ../../configs/services.yml:/app/services.yml:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+  
+  redis:
+    image: redis:7
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 1s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  redis-data:
