@@ -7,7 +7,7 @@ import (
 
 	"github.com/capcom6/service-monitor-tgbot/internal/monitor/probes"
 	"github.com/capcom6/service-monitor-tgbot/internal/storage"
-	"github.com/capcom6/service-monitor-tgbot/pkg/collections"
+	"github.com/samber/lo"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -62,7 +62,7 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 				},
 				Scheme:      cfg.HTTPGet.Scheme,
 				Path:        cfg.HTTPGet.Path,
-				HTTPHeaders: collections.GroupBy(cfg.HTTPGet.HTTPHeaders, func(h storage.HTTPHeader) (string, string) { return h.Name, h.Value }),
+				HTTPHeaders: lo.GroupByMap(cfg.HTTPGet.HTTPHeaders, func(h storage.HTTPHeader) (string, string) { return h.Name, h.Value }),
 			},
 			TcpSocket: probes.TcpSocketConfig{
 				Host: cfg.TCPSocket.Host,
