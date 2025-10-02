@@ -39,6 +39,21 @@ func Run() {
 			lc.Append(fx.Hook{
 				OnStart: func(ctx context.Context) error {
 					logger.Info("Started")
+
+					// Start Telegram bot listener
+					wg.Add(1)
+					go func() {
+						_, err := bot.Listen(ctx)
+						if err != nil {
+							logger.Error("Failed to start Telegram bot listener", zap.Error(err))
+							return
+						}
+
+						// Keep the goroutine alive to process updates
+						<-ctx.Done()
+						logger.Info("Telegram bot listener stopped")
+					}()
+
 					return nil
 				},
 				OnStop: func(ctx context.Context) error {

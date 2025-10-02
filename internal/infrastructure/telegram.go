@@ -1,7 +1,10 @@
 package infrastructure
 
 import (
+	"context"
+
 	"github.com/capcom6/service-monitor-tgbot/internal/config"
+	"github.com/capcom6/service-monitor-tgbot/internal/monitor"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -10,12 +13,21 @@ import (
 type TelegramBotParams struct {
 	fx.In
 
-	Config config.Telegram
-	Logger *zap.Logger
+	Config   config.Telegram
+	Logger   *zap.Logger
+	Monitor  *monitor.MonitorModule
+	Messages interface {
+		RenderStatus(services []monitor.ServiceStatus) string
+	}
 }
 
 type TelegramBot struct {
-	Config config.Telegram
+	Config   config.Telegram
+	Logger   *zap.Logger
+	Monitor  *monitor.MonitorModule
+	Messages interface {
+		RenderStatus(services []monitor.ServiceStatus) string
+	}
 
 	api *tgbotapi.BotAPI
 }
@@ -27,8 +39,11 @@ func NewTelegramBot(p TelegramBotParams) (*TelegramBot, error) {
 	}
 
 	return &TelegramBot{
-		Config: p.Config,
-		api:    api,
+		Config:   p.Config,
+		Logger:   p.Logger,
+		Monitor:  p.Monitor,
+		Messages: p.Messages,
+		api:      api,
 	}, nil
 }
 
@@ -43,34 +58,49 @@ func (b *TelegramBot) EscapeText(text string) string {
 	return tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, text)
 }
 
-// func (b *TelegramBot) Api() (*tgbotapi.BotAPI, error) {
-// 	b.mux.Lock()
-// 	defer b.mux.Unlock()
+func (b *TelegramBot) Listen(ctx context.Context) (tgbotapi.UpdatesChannel, error) {
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+	u.AllowedUpdates = []string{"message", "callback_query"}
 
-// 	if b.api != nil {
-// 		return b.api, nil
-// 	}
+	go func() {
+		<-ctx.Done()
+		b.api.StopReceivingUpdates()
+	}()
 
-// 	api, err := tgbotapi.NewBotAPI(b.Config.Token)
-// 	if err != nil {
-// 		return nil, err
-// 	}
+	updates := b.api.GetUpdatesChan(u)
 
-// 	api.Debug = b.Config.Debug
-// 	b.api = api
+	// Process updates in a separate goroutine
+	go func() {
+		for update := range updates {
+			if update.Message != nil && update.Message.IsCommand() {
+				b.handleCommand(ctx, update.Message)
+			}
+		}
+	}()
 
-// 	return api, nil
-// }
+	return updates, nil
+}
 
-// func (b *TelegramBot) Listen(ctx context.Context) (tgbotapi.UpdatesChannel, error) {
-// 	u := tgbotapi.NewUpdate(0)
-// 	u.Timeout = 60
-// 	u.AllowedUpdates = []string{"message", "callback_query"}
+func (b *TelegramBot) handleCommand(ctx context.Context, msg *tgbotapi.Message) {
+	if msg.Command() == "status" {
+		b.HandleStatusCommand(msg.Chat.ID)
+	}
+}
 
-// 	go func() {
-// 		<-ctx.Done()
-// 		b.api.StopReceivingUpdates()
-// 	}()
+func (b *TelegramBot) HandleStatusCommand(chatID int64) {
+	// Get current service states
+	serviceStatuses := b.getCurrentServiceStatuses()
 
-// 	return b.api.GetUpdatesChan(u), nil
-// }
+	// Format response using RenderStatus method
+	response := b.Messages.RenderStatus(serviceStatuses)
+
+	// Send response
+	if err := b.SendMessage(response); err != nil {
+		b.Logger.Error("Failed to send status message", zap.Error(err))
+	}
+}
+
+func (b *TelegramBot) getCurrentServiceStatuses() []monitor.ServiceStatus {
+	return b.Monitor.GetCurrentStatuses()
+}
