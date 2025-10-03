@@ -1,6 +1,11 @@
 # Changelog
 
-## v1.0.2
+## v1.1.1
+
+### Changed
+- internal changes
+
+## v1.1.0
 
 ### Added
 - messages templates
