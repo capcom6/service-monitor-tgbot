@@ -11,7 +11,9 @@ import (
 
 type Service struct {
 	templates map[string]string
+	escapeFn  func(string) string
 
+	funcs template.FuncMap
 	cache map[string]*template.Template
 	mux   sync.RWMutex
 
@@ -19,14 +21,26 @@ type Service struct {
 }
 
 func NewService(cfg Config, logger *zap.Logger) *Service {
-	return &Service{
+	s := &Service{
 		templates: cfg.Templates,
+		escapeFn:  cfg.EscapeFn,
 
+		funcs: nil,
 		cache: make(map[string]*template.Template),
 		mux:   sync.RWMutex{},
 
 		logger: logger,
 	}
+
+	s.funcs = template.FuncMap{
+		"escape": s.escape,
+	}
+
+	return s
+}
+
+func (s *Service) SetEscapeFn(fn func(string) string) {
+	s.escapeFn = fn
 }
 
 func (s *Service) Render(name string, data any) (string, error) {
@@ -63,7 +77,7 @@ func (s *Service) prepare(name string) (*template.Template, error) {
 		return tmpl, nil
 	}
 
-	tmpl, err := template.New(name).Parse(s.templates[name])
+	tmpl, err := template.New(name).Funcs(s.funcs).Parse(s.templates[name])
 	if err != nil {
 		return nil, fmt.Errorf("can't parse template %s: %w", name, err)
 	}
@@ -71,4 +85,12 @@ func (s *Service) prepare(name string) (*template.Template, error) {
 	s.cache[name] = tmpl
 
 	return tmpl, nil
+}
+
+func (s *Service) escape(text string) string {
+	if s.escapeFn != nil {
+		return s.escapeFn(text)
+	}
+
+	return text
 }
