@@ -2,6 +2,10 @@ github.com/benbjohnson/clock v1.3.0 h1:ip6w0uFQkncKQ979AypyG0ER7mqUSBdKLOgAle/AT
 github.com/benbjohnson/clock v1.3.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
 github.com/capcom6/go-infra-fx v0.4.0 h1:ijyEO6rOzLDLB8YvmqzcaIBw46ehDdx2GGzzR1m+VIQ=
 github.com/capcom6/go-infra-fx v0.4.0/go.mod h1:SpfKffK04JzQ18XNikHbKg3EhOdnUmItDfBFzmE0/9g=
+github.com/capcom6/go-infra-fx v0.4.1-0.20251005024431-e4d0c0a02560 h1:5fqj8oKnBdOs1DbMX1301iKLhxl1hf9/JzE8Mk4nFds=
+github.com/capcom6/go-infra-fx v0.4.1-0.20251005024431-e4d0c0a02560/go.mod h1:wUCgRVPEqDGeaPwHkWiMKlp68Ff2BI8aMN4XLxGMghw=
+github.com/capcom6/go-infra-fx v0.5.0 h1:9i5PWR8xTH6S5j90Xpf+JQu8UFu87sF2Guc/E0z+750=
+github.com/capcom6/go-infra-fx v0.5.0/go.mod h1:wUCgRVPEqDGeaPwHkWiMKlp68Ff2BI8aMN4XLxGMghw=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1 h1:wG8n/XJQ07TmjbITcGiUaOtXxdrINDz1b0J1w0SzqDc=
