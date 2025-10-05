@@ -15,9 +15,9 @@
 package main
 
 import (
-	"github.com/capcom6/service-monitor-tgbot/internal/bot"
+	"github.com/capcom6/service-monitor-tgbot/internal"
 )
 
 func main() {
-	bot.Run()
+	internal.Run()
 }
