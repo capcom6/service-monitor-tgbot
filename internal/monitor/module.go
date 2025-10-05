@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/capcom6/go-infra-fx/fxutil"
 	"github.com/capcom6/service-monitor-tgbot/internal/monitor/probes"
@@ -29,12 +30,13 @@ type MonitorModuleParams struct {
 }
 
 type MonitorModule struct {
-	Storage  storage.Storage
-	Services []storage.Service
-	Logger   *zap.Logger
+	storage  storage.Storage
+	services []storage.Service
+	logger   *zap.Logger
 
 	probes []ProbesChannel
 	states []state
+	mu     sync.RWMutex
 }
 
 func NewMonitorModule(params MonitorModuleParams) (*MonitorModule, error) {
@@ -44,22 +46,22 @@ func NewMonitorModule(params MonitorModuleParams) (*MonitorModule, error) {
 	}
 
 	return &MonitorModule{
-		Storage:  params.Storage,
-		Services: services,
-		Logger:   params.Logger,
+		storage:  params.Storage,
+		services: services,
+		logger:   params.Logger,
 	}, nil
 }
 
 func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
-	m.probes = make([]ProbesChannel, len(m.Services))
-	m.states = make([]state, len(m.Services))
+	m.probes = make([]ProbesChannel, len(m.services))
+	m.states = make([]state, len(m.services))
 
-	for i, cfg := range m.Services {
+	for i, cfg := range m.services {
 		mon := NewMonitorService(ServiceMonitorConfig{
 			HttpGet: probes.HttpGetConfig{
 				TcpSocketConfig: probes.TcpSocketConfig{
-					Host: cfg.HTTPGet.TCPSocket.Host,
-					Port: cfg.HTTPGet.TCPSocket.Port,
+					Host: cfg.HTTPGet.Host,
+					Port: cfg.HTTPGet.Port,
 				},
 				Scheme:      cfg.HTTPGet.Scheme,
 				Path:        cfg.HTTPGet.Path,
@@ -89,7 +91,7 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 
 		for i, ch := range m.probes {
 			go func(i int, ch ProbesChannel) {
-				m.Logger.Info("Starting probe", zap.Int("id", i))
+				m.logger.Info("Starting probe", zap.Int("id", i))
 				defer wg.Done()
 				for {
 					select {
@@ -102,7 +104,7 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 							}
 						}
 					case <-ctx.Done():
-						m.Logger.Info("Stopping probe", zap.Int("id", i))
+						m.logger.Info("Stopping probe", zap.Int("id", i))
 						return
 					}
 				}
@@ -111,14 +113,14 @@ func (m *MonitorModule) Monitor(ctx context.Context) (UpdatesChannel, error) {
 
 		wg.Wait()
 		<-ctx.Done()
-		m.Logger.Info("Monitor service stopped")
+		m.logger.Info("Monitor service stopped")
 	}()
 
 	return updCh, nil
 }
 
 func (m *MonitorModule) updateState(id int, probe error) *ServiceStatus {
-	service := m.Services[id]
+	service := m.services[id]
 	current := m.states[id]
 
 	delta := 1
@@ -137,53 +139,49 @@ func (m *MonitorModule) updateState(id int, probe error) *ServiceStatus {
 	var upd *ServiceStatus
 	if !current.Online && current.Probes == int(service.SuccessThreshold) {
 		current.Online = true
+		current.Error = nil
+
 		upd = &ServiceStatus{
 			Id:    service.Id,
 			Name:  service.Name,
-			State: ServiceOnline,
+			State: ServiceStateOnline,
 			Error: nil,
 		}
 	} else if current.Online && current.Probes == -int(service.FailureThreshold) {
 		current.Online = false
+		current.Error = probe
+
 		upd = &ServiceStatus{
 			Id:    service.Id,
 			Name:  service.Name,
-			State: ServiceOffline,
+			State: ServiceStateOffline,
 			Error: probe,
 		}
 	}
 
+	current.Timestamp = time.Now()
+
+	m.mu.Lock()
 	m.states[id] = current
+	m.mu.Unlock()
 
 	return upd
 }
 
 // GetCurrentStatuses returns the current status of all services
 func (m *MonitorModule) GetCurrentStatuses() []ServiceStatus {
-	statuses := make([]ServiceStatus, len(m.Services))
+	statuses := make([]ServiceStatus, len(m.services))
 
-	for i, service := range m.Services {
-		if i < len(m.states) {
-			state := m.states[i]
-			serviceState := ServiceOffline
-			if state.Online {
-				serviceState = ServiceOnline
-			}
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 
-			statuses[i] = ServiceStatus{
-				Id:    service.Id,
-				Name:  service.Name,
-				State: serviceState,
-				Error: nil, // Error handling would need additional implementation
-			}
-		} else {
-			// Default state if not yet monitored
-			statuses[i] = ServiceStatus{
-				Id:    service.Id,
-				Name:  service.Name,
-				State: ServiceOffline,
-				Error: fmt.Errorf("service not yet monitored"),
-			}
+	for i, service := range m.services {
+		state := m.states[i]
+		statuses[i] = ServiceStatus{
+			Id:    service.Id,
+			Name:  service.Name,
+			State: state.State(),
+			Error: state.Error,
 		}
 	}
 

@@ -34,8 +34,8 @@ func (p *HttpGet) Probe(ctx context.Context) error {
 	}
 
 	defer func() {
-		io.Copy(io.Discard, resp.Body)
-		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
 	}()
 
 	if resp.StatusCode >= 400 {
