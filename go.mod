@@ -5,7 +5,7 @@ go 1.23.0
 toolchain go1.24.1
 
 require (
-	github.com/capcom6/go-infra-fx v0.4.0
+	github.com/capcom6/go-infra-fx v0.5.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/samber/lo v1.51.0
 	go.uber.org/fx v1.20.1
