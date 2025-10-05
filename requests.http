@@ -1,0 +1,5 @@
+@token={{$dotenv TELEGRAM__TOKEN}}
+@baseUrl=https://api.telegram.org/bot{{token}}
+
+###
+GET {{baseUrl}}/getUpdates HTTP/1.1
