@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"errors"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -27,14 +26,4 @@ func (s *yamlStorage) Load() ([]Service, error) {
 	}
 
 	return root.Services, nil
-}
-
-func newYamlStorage(path string) (*yamlStorage, error) {
-	if path == "" {
-		return nil, errors.New("path is empty")
-	}
-
-	return &yamlStorage{
-		Path: path,
-	}, nil
 }

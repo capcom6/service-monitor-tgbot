@@ -65,12 +65,13 @@ func (s *HTTPGet) Validate() error {
 		s.Path = "/"
 	}
 
-	if s.TCPSocket.Port == 0 {
-		if s.Scheme == "http" {
-			s.TCPSocket.Port = 80
-		} else if s.Scheme == "https" {
-			s.TCPSocket.Port = 443
-		} else {
+	if s.Port == 0 {
+		switch s.Scheme {
+		case "http":
+			s.Port = 80
+		case "https":
+			s.Port = 443
+		default:
 			return errors.New("port is empty")
 		}
 	}
