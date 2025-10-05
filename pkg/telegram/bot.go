@@ -96,7 +96,11 @@ func (b *Bot) handleCommand(ctx context.Context, msg *tg.Message) {
 	}()
 
 	if handler, ok := b.handlers[msg.Command()]; ok {
-		handler.HandleCommand(ctx, msg)
+		handler(ctx, Command{
+			From: msg.From.ID,
+			Name: msg.Command(),
+			Args: msg.CommandArguments(),
+		})
 		return
 	}
 
