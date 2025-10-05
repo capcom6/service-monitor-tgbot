@@ -5,6 +5,8 @@ import (
 	"sync"
 
 	"github.com/capcom6/go-infra-fx/fxutil"
+	"github.com/capcom6/service-monitor-tgbot/internal/messages"
+	"github.com/capcom6/service-monitor-tgbot/pkg/telegram"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -14,7 +16,7 @@ func Module() fx.Option {
 		"bot",
 		fxutil.WithNamedLogger("bot"),
 		fx.Provide(NewService),
-		fx.Invoke(func(s *Service, logger *zap.Logger, lc fx.Lifecycle, sh fx.Shutdowner) {
+		fx.Invoke(func(s *Service, tg *telegram.Bot, messages *messages.Service, logger *zap.Logger, lc fx.Lifecycle, sh fx.Shutdowner) {
 			ctx, cancel := context.WithCancel(context.Background())
 			wg := &sync.WaitGroup{}
 
@@ -44,6 +46,9 @@ func Module() fx.Option {
 					return nil
 				},
 			})
+
+			messages.SetEscapeFn(tg.EscapeText)
+			tg.AddHandler("status", s.HandleStatusCommand)
 		}),
 	)
 }
