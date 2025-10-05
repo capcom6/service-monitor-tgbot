@@ -42,7 +42,7 @@ func (s *Service) Run(ctx context.Context) error {
 		s.logger.Debug("probe", zap.String("name", v.Name), zap.String("state", string(v.State)), zap.Error(v.Error))
 
 		msg := ""
-		if v.State == monitor.ServiceOffline {
+		if v.State == monitor.ServiceStateOffline {
 			context := OfflineContext{
 				OnlineContext: OnlineContext{
 					Name: s.bot.EscapeText(v.Name),
