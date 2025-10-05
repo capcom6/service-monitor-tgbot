@@ -58,6 +58,11 @@ func (s *Service) prepare(name string) (*template.Template, error) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
+	// Re-check cache in case another goroutine cached it while we waited for the lock
+	if tmpl, ok := s.cache[name]; ok {
+		return tmpl, nil
+	}
+
 	tmpl, err := template.New(name).Parse(s.templates[name])
 	if err != nil {
 		return nil, fmt.Errorf("can't parse template %s: %w", name, err)
