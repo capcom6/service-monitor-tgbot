@@ -61,15 +61,21 @@ func (b *Bot) EscapeText(text string) string {
 	return tg.EscapeText(b.cfg.ParseMode, text)
 }
 
-func (b *Bot) Listen() error {
+func (b *Bot) Listen(ctx context.Context) error {
 	u := tg.NewUpdate(0)
 	u.Timeout = 60
 	u.AllowedUpdates = []string{"message", "callback_query"}
 
 	updates := b.api.GetUpdatesChan(u)
 	for update := range updates {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
 		if update.Message != nil && update.Message.IsCommand() {
-			b.handleCommand(context.TODO(), update.Message)
+			b.handleCommand(ctx, update.Message)
 		}
 	}
 
@@ -81,6 +87,14 @@ func (b *Bot) Close() {
 }
 
 func (b *Bot) handleCommand(ctx context.Context, msg *tg.Message) {
+	defer func() {
+		if r := recover(); r != nil {
+			b.logger.Error("Command handler panicked",
+				zap.String("command", msg.Command()),
+				zap.Any("panic", r))
+		}
+	}()
+
 	if handler, ok := b.handlers[msg.Command()]; ok {
 		handler.HandleCommand(ctx, msg)
 		return
