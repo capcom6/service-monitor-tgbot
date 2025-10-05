@@ -157,3 +157,35 @@ func (m *MonitorModule) updateState(id int, probe error) *ServiceStatus {
 
 	return upd
 }
+
+// GetCurrentStatuses returns the current status of all services
+func (m *MonitorModule) GetCurrentStatuses() []ServiceStatus {
+	statuses := make([]ServiceStatus, len(m.Services))
+
+	for i, service := range m.Services {
+		if i < len(m.states) {
+			state := m.states[i]
+			serviceState := ServiceOffline
+			if state.Online {
+				serviceState = ServiceOnline
+			}
+
+			statuses[i] = ServiceStatus{
+				Id:    service.Id,
+				Name:  service.Name,
+				State: serviceState,
+				Error: nil, // Error handling would need additional implementation
+			}
+		} else {
+			// Default state if not yet monitored
+			statuses[i] = ServiceStatus{
+				Id:    service.Id,
+				Name:  service.Name,
+				State: ServiceOffline,
+				Error: fmt.Errorf("service not yet monitored"),
+			}
+		}
+	}
+
+	return statuses
+}
