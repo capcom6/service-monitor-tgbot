@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/capcom6/go-infra-fx/fxutil"
 	"github.com/capcom6/service-monitor-tgbot/internal/monitor/probes"
 	"github.com/capcom6/service-monitor-tgbot/internal/storage"
 	"github.com/samber/lo"
@@ -12,13 +13,13 @@ import (
 	"go.uber.org/zap"
 )
 
-var Module = fx.Module(
-	"monitor",
-	fx.Decorate(func(log *zap.Logger) *zap.Logger {
-		return log.Named("monitor")
-	}),
-	fx.Provide(NewMonitorModule),
-)
+func Module() fx.Option {
+	return fx.Module(
+		"monitor",
+		fxutil.WithNamedLogger("monitor"),
+		fx.Provide(NewMonitorModule),
+	)
+}
 
 type MonitorModuleParams struct {
 	fx.In
