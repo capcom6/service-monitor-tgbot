@@ -5,7 +5,7 @@ import (
 )
 
 type Command struct {
-	From int64
+	Chat int64
 	Name string
 	Args string
 }

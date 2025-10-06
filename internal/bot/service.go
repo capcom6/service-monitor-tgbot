@@ -74,7 +74,7 @@ func (s *Service) HandleStatusCommand(ctx context.Context, cmd telegram.Command)
 	services := s.monitor.GetCurrentStatuses()
 
 	if len(services) == 0 {
-		if _, err := s.bot.SendMessage(cmd.From, "No services configured."); err != nil {
+		if _, err := s.bot.SendMessage(cmd.Chat, "No services configured."); err != nil {
 			s.logger.Error("can't send message", zap.Error(err))
 		}
 		return
@@ -96,7 +96,7 @@ func (s *Service) HandleStatusCommand(ctx context.Context, cmd telegram.Command)
 		return
 	}
 
-	if _, err := s.bot.SendMessage(cmd.From, msg); err != nil {
+	if _, err := s.bot.SendMessage(cmd.Chat, msg); err != nil {
 		s.logger.Error("can't send message", zap.Error(err))
 	}
 }
