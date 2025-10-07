@@ -43,18 +43,18 @@ func (s *Service) Run(ctx context.Context) error {
 
 		msg := ""
 		if v.State == monitor.ServiceStateOffline {
-			context := OfflineContext{
-				OnlineContext: OnlineContext{
-					Name: s.bot.EscapeText(v.Name),
+			msg, err = s.messages.Offline(
+				messages.OfflineContext{
+					OnlineContext: messages.OnlineContext{
+						Name: v.Name,
+					},
+					Error: v.Error.Error(),
 				},
-				Error: s.bot.EscapeText(v.Error.Error()),
-			}
-			msg, err = s.messages.Render(TemplateOffline, context)
+			)
 		} else {
-			context := OnlineContext{
-				Name: s.bot.EscapeText(v.Name),
-			}
-			msg, err = s.messages.Render(TemplateOnline, context)
+			msg, err = s.messages.Online(messages.OnlineContext{
+				Name: v.Name,
+			})
 		}
 
 		if err != nil {
@@ -80,17 +80,13 @@ func (s *Service) HandleStatusCommand(ctx context.Context, cmd telegram.Command)
 		return
 	}
 
-	context := make(ServicesListContext, len(services))
+	context := make(messages.ServicesListContext, len(services))
 
 	for i, service := range services {
-		context[i] = ServiceState{
-			Name:  service.Name,
-			State: string(service.State),
-			Error: service.Error,
-		}
+		context[i] = messages.NewServiceState(service.Name, string(service.State), service.Error)
 	}
 
-	msg, err := s.messages.Render(TemplateServicesList, context)
+	msg, err := s.messages.ServicesList(context)
 	if err != nil {
 		s.logger.Error("can't render template", zap.Error(err))
 		return
