@@ -14,6 +14,7 @@ func Module() fx.Option {
 		"config",
 		fxutil.WithNamedLogger("config"),
 		fx.Provide(func() (Config, error) {
+			defaultConfig := Config{}
 			return defaultConfig, config.LoadConfig(&defaultConfig)
 		}),
 		fx.Provide(func(cfg Config) telegram.Config {
