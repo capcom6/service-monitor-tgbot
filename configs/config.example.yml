@@ -1,35 +1,35 @@
 telegram:
-  token: # токен бота
-  chatId: -1234567890123 # ИД чата для уведомлений
-  webhookUrl: # TODO: URL для получения веб-хуков, если не задан, то используется long-poll
+  token: # bot token
+  chatId: -1234567890123 # chat ID for notifications
   messages:
-    online: "✅ {{.Name}} is *online*" # текст сообщения при переходе сервиса в состояние "в сети"
-    offline: "❌ {{.Name}} is *offline*: {{.Error}}" # текст сообщения при переходе сервиса в состояние "не в сети"
-services: # список сервисов для мониторинга
-  - name: Google # наименование для уведомления
-    initialDelaySeconds: 5 # пауза перед первым опросом в секундах, по умолчанию: 0; если меньше 0, то используется случайное значение между 0 и `periodSeconds`
-    periodSeconds: 10 # период опроса в секундах, по умолчанию: 10
-    timeoutSeconds: 1 # время ожидания ответа в секундах, по кмолчанию: 1
-    successThreshold: 1 # количество последовательных успешных соединений для перехода в состояние "в сети", по умолчанию: 1
-    failureThreshold: 3 # количество последовательных ошибок соединения для перехода в состояние "не в сети", по умолчанию: 3
-    httpGet: # проверка HTTP(S) сервиса
-      scheme: https # схема http/https
-      host: google.com # адрес сервиса
-      path: / # путь
-      port: 443 # порт
-      httpHeaders: # дополнительные http-заголовки запроса
-        - name: X-Header # имя заголовка
-          value: value # значение заголовка
+    online: "✅ {{.Name}} is *online*" # message text when service goes "online"
+    offline: "❌ {{.Name}} is *offline*: {{.Error}}" # message text when service goes "offline"
+    services_list: |
+      {{ range . }}
+        {{- .Name | escape }}: *{{ .State | escape }}* {{ if eq .State "online" }}✅{{ else }}❌ {{ if .Error }} \({{ printf "%s" .Error | escape}}\) {{ end }} {{ end }}
+      {{ end }}
+services: # list of services to monitor
+  - name: Google # name for notifications
+    initialDelaySeconds: 5 # delay before first check in seconds, default: 0; if less than 0, random value between 0 and `periodSeconds` is used
+    periodSeconds: 10 # check period in seconds, default: 10
+    timeoutSeconds: 1 # response timeout in seconds, default: 1
+    successThreshold: 1 # number of consecutive successful connections to go "online", default: 1
+    failureThreshold: 3 # number of consecutive connection errors to go "offline", default: 3
+    httpGet: # HTTP(S) service check
+      scheme: https # http/https scheme
+      host: google.com # service address
+      path: / # path
+      port: 443 # port
+      httpHeaders: # additional HTTP request headers
+        - name: X-Header # header name
+          value: value # header value
   - name: MySQL
     initialDelaySeconds: 5
     periodSeconds: 10
     timeoutSeconds: 1
     successThreshold: 1
     failureThreshold: 3
-    tcpSocket: # проверка TCP-порта
-      host: localhost # адрес сервиса
-      port: 3306 # порт
-storage: # TODO
-  redis:
-    host: localhost
-    port: 6379
+    tcpSocket: # TCP port check
+      host: localhost # service address
+      port: 3306 # port
+
