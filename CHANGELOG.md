@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.2.0
+
+### Added
+- active mode with `/status` command
+
 ## v1.1.1
 
 ### Changed
