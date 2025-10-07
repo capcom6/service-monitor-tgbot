@@ -57,6 +57,9 @@
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
 - [Usage](#usage)
+  - [Messages Template System](#messages-template-system)
+  - [Commands](#commands)
+- [Examples](#examples)
   - [HTTP service monitoring example](#http-service-monitoring-example)
   - [TCP service monitoring example](#tcp-service-monitoring-example)
 - [Roadmap](#roadmap)
@@ -115,6 +118,28 @@ To run a bot, it is enough to have Docker or another environment for running con
 <!-- USAGE EXAMPLES -->
 ## Usage
 
+### Messages Template System
+
+The bot uses a flexible template system for customizing notification messages. Templates support Go template syntax and can be customized in the configuration file under the `messages` section.
+
+Available templates:
+
+| Template        | Variables                                                                                                                | Description                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
+| `online`        | `Name` - name of the service                                                                                             | message when a service goes "online"  |
+| `offline`       | `Name` - name of the service<br>`Error` - error message                                                                  | message when a service goes "offline" |
+| `services_list` | `.` - list of all services:<br>`Name` - name of the service<br>`State` - state of the service<br>`Error` - error message | message with a list of all services   |
+
+### Commands
+
+The bot supports the following commands:
+
+- `/status` - Get the current status of all monitored services
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Examples
+
 ### HTTP service monitoring example
 
 ```yaml
@@ -169,7 +194,7 @@ services:
 - [ ] Display event time in notifications
 - [ ] Online/offline time count
 - [ ] Active bot mode
-     - [ ] Request current state of services
+     - [x] Request current state of services
      - [ ] SLA report
      - [ ] The event log
 - [ ] Separation of bot and monitoring service
