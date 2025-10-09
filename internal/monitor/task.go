@@ -51,10 +51,10 @@ type task struct {
 func newTask(config taskConfig) (*task, error) {
 	var p Probeer
 	switch {
-	case config.HTTPGet.Host == "":
-		p = probes.NewTCPSocket(config.TCPSocket)
-	case config.TCPSocket.Host == "":
+	case config.HTTPGet.Host != "":
 		p = probes.NewHTTPGet(config.HTTPGet)
+	case config.TCPSocket.Host != "":
+		p = probes.NewTCPSocket(config.TCPSocket)
 	default:
 		return nil, fmt.Errorf("%w: no probeer", ErrInvalidConfig)
 	}
@@ -77,7 +77,13 @@ func (s *task) Monitor(ctx context.Context) (ProbesChannel, error) {
 		defer close(ch)
 
 		if s.config.InitialDelaySeconds > 0 {
-			time.Sleep(time.Duration(s.config.InitialDelaySeconds) * time.Second)
+			timer := time.NewTimer(time.Duration(s.config.InitialDelaySeconds) * time.Second)
+			select {
+			case <-ctx.Done():
+				timer.Stop()
+				return
+			case <-timer.C:
+			}
 		}
 
 		ticker := time.NewTicker(time.Duration(s.config.PeriodSeconds) * time.Second)
