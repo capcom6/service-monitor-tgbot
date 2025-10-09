@@ -41,13 +41,12 @@ func (m *Service) initializeProbes(ctx context.Context) error {
 	for i, cfg := range m.services {
 		mon, err := newTask(newTaskConfig(cfg))
 		if err != nil {
-			m.logger.Error("failed to initialize probe for service", zap.Int("id", i), zap.Error(err))
-			continue
+			return fmt.Errorf("failed to initialize probe for service %q: %w", cfg.ID, err)
 		}
 
 		monCh, err := mon.Monitor(ctx)
 		if err != nil {
-			return fmt.Errorf("failed to initialize probe for service %d: %w", i, err)
+			return fmt.Errorf("failed to initialize probe for service %q: %w", cfg.ID, err)
 		}
 		m.probes[i] = monCh
 	}
@@ -73,17 +72,18 @@ func (m *Service) startMonitoring(ctx context.Context, updCh UpdatesChannel) {
 	wg.Add(len(m.probes))
 
 	for i, ch := range m.probes {
-		go m.startProbe(ctx, i, ch, &wg, updCh)
+		go func(i int, ch ProbesChannel) {
+			defer wg.Done()
+			m.startProbe(ctx, i, ch, updCh)
+		}(i, ch)
 	}
 
 	wg.Wait()
-	<-ctx.Done()
 	m.logger.Info("Monitor service stopped")
 }
 
-func (m *Service) startProbe(ctx context.Context, id int, ch ProbesChannel, wg *sync.WaitGroup, updCh UpdatesChannel) {
-	defer wg.Done()
-	m.logger.Info("Starting probe", zap.Int("id", id))
+func (m *Service) startProbe(ctx context.Context, id int, ch ProbesChannel, updCh UpdatesChannel) {
+	m.logger.Info("Starting probe", zap.String("id", m.services[id].ID))
 
 	for {
 		select {
@@ -96,7 +96,7 @@ func (m *Service) startProbe(ctx context.Context, id int, ch ProbesChannel, wg *
 				}
 			}
 		case <-ctx.Done():
-			m.logger.Info("Stopping probe", zap.Int("id", id))
+			m.logger.Info("Stopping probe", zap.String("id", m.services[id].ID))
 			return
 		}
 	}
