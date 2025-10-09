@@ -1,28 +1,30 @@
 package storage
 
+import "fmt"
+
 type Storage interface {
-	Load() ([]Service, error)
+	Load() ([]MonitoredService, error)
 }
 
-type StorageService struct {
+type Service struct {
 	storage Storage
 }
 
-func NewStorageService(storage Storage) *StorageService {
-	return &StorageService{
+func NewService(storage Storage) *Service {
+	return &Service{
 		storage: storage,
 	}
 }
 
-func (s *StorageService) Load() ([]Service, error) {
+func (s *Service) Load() ([]MonitoredService, error) {
 	services, err := s.storage.Load()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to load services: %w", err)
 	}
 
 	for i := range services {
 		if err := services[i].Validate(); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to validate service %s: %w", services[i].Name, err)
 		}
 	}
 

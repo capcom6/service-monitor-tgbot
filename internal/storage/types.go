@@ -1,28 +1,46 @@
 package storage
 
 import (
-	"errors"
-	"math/rand"
+	"fmt"
+	"math/rand/v2"
 )
 
-type Service struct {
-	Id                  string    `yaml:"id" validate:"required"`
-	Name                string    `yaml:"name" validate:"required"`
-	InitialDelaySeconds int32     `yaml:"initialDelaySeconds"`              // пауза перед первым опросом в секундах, по умолчанию: 0; если меньше 0, то используется случайное значение между 0 и `periodSeconds`
-	PeriodSeconds       uint16    `yaml:"periodSeconds" validate:"gt=0"`    // период опроса в секундах, по умолчанию: 10
-	TimeoutSeconds      uint16    `yaml:"timeoutSeconds" validate:"gt=0"`   // время ожидания ответа в секундах, по кмолчанию: 1
-	SuccessThreshold    uint8     `yaml:"successThreshold" validate:"gt=0"` // количество последовательных успешных соединений для перехода в состояние "в сети", по умолчанию: 1
-	FailureThreshold    uint8     `yaml:"failureThreshold" validate:"gt=0"` // количество последовательных ошибок соединения для перехода в состояние "не в сети", по умолчанию: 3
-	HTTPGet             HTTPGet   `yaml:"httpGet,omitempty" validate:"required_without=TCPSocket"`
-	TCPSocket           TCPSocket `yaml:"tcpSocket,omitempty" validate:"required_without=HTTPGet"`
+// MonitoredService is a service that needs to be monitored.
+type MonitoredService struct {
+	// ID is the unique identifier of the service.
+	ID string `yaml:"id" validate:"required"`
+	// Name is the human-readable name of the service.
+	Name string `yaml:"name" validate:"required"`
+	// InitialDelaySecondsRaw is the number of seconds to wait before starting the monitoring.
+	InitialDelaySecondsRaw int16 `yaml:"initialDelaySeconds"`
+	// PeriodSeconds is the number of seconds between each monitoring attempt.
+	PeriodSeconds uint16 `yaml:"periodSeconds" validate:"gt=0"`
+	// TimeoutSeconds is the number of seconds to wait for a response from the service.
+	TimeoutSeconds uint16 `yaml:"timeoutSeconds" validate:"gt=0"`
+	// SuccessThreshold is the number of successful monitoring attempts needed to consider the service as "online".
+	SuccessThreshold uint8 `yaml:"successThreshold" validate:"gt=0"`
+	// FailureThreshold is the number of failed monitoring attempts needed to consider the service as "offline".
+	FailureThreshold uint8 `yaml:"failureThreshold" validate:"gt=0"`
+	// HTTPGet is the HTTP request to send to the service.
+	HTTPGet HTTPGet `yaml:"httpGet,omitempty" validate:"required_without=TCPSocket"`
+	// TCPSocket is the TCP socket to connect to the service.
+	TCPSocket TCPSocket `yaml:"tcpSocket,omitempty" validate:"required_without=HTTPGet"`
 }
 
-func (s *Service) Validate() error {
-	if s.Id == "" {
-		s.Id = s.Name
+func (s *MonitoredService) InitialDelaySeconds() uint16 {
+	if s.InitialDelaySecondsRaw < 0 {
+		return uint16(rand.IntN(int(s.PeriodSeconds) + 1)) //nolint:gosec //weak random is enough
+	}
+
+	return uint16(s.InitialDelaySecondsRaw)
+}
+
+func (s *MonitoredService) Validate() error {
+	if s.ID == "" {
+		s.ID = s.Name
 	}
 	if s.Name == "" {
-		return errors.New("name is empty")
+		return fmt.Errorf("%w: name is empty", ErrValidation)
 	}
 	if s.PeriodSeconds == 0 {
 		s.PeriodSeconds = 10
@@ -30,9 +48,7 @@ func (s *Service) Validate() error {
 	if s.TimeoutSeconds == 0 {
 		s.TimeoutSeconds = 1
 	}
-	if s.InitialDelaySeconds < 0 {
-		s.InitialDelaySeconds = int32(rand.Intn(int(s.PeriodSeconds) + 1))
-	}
+
 	if s.SuccessThreshold == 0 {
 		s.SuccessThreshold = 1
 	}
@@ -47,7 +63,7 @@ func (s *Service) Validate() error {
 		return s.TCPSocket.Validate()
 	}
 
-	return errors.New("one of httpGet or tcpSocket must be filled")
+	return fmt.Errorf("%w: one of httpGet or tcpSocket must be filled", ErrValidation)
 }
 
 type HTTPGet struct {
@@ -72,7 +88,7 @@ func (s *HTTPGet) Validate() error {
 		case "https":
 			s.Port = 443
 		default:
-			return errors.New("port is empty")
+			return fmt.Errorf("%w: invalid scheme %q", ErrValidation, s.Scheme)
 		}
 	}
 
@@ -95,12 +111,12 @@ func (s TCPSocket) IsEmpty() bool {
 	return s.Host == ""
 }
 
-func (s *TCPSocket) Validate() error {
+func (s TCPSocket) Validate() error {
 	if s.Host == "" {
-		return errors.New("host is empty")
+		return fmt.Errorf("%w: host is empty", ErrValidation)
 	}
 	if s.Port == 0 {
-		return errors.New("port is empty")
+		return fmt.Errorf("%w: port is empty", ErrValidation)
 	}
 	return nil
 }

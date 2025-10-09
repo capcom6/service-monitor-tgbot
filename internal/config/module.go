@@ -14,17 +14,19 @@ func Module() fx.Option {
 		"config",
 		fxutil.WithNamedLogger("config"),
 		fx.Provide(func() (Config, error) {
-			defaultConfig := Config{}
-			return defaultConfig, config.LoadConfig(&defaultConfig)
+			defaultConfig := new(Config)
+			return *defaultConfig, config.LoadConfig(defaultConfig)
 		}),
 		fx.Provide(func(cfg Config) telegram.Config {
 			return telegram.Config{
-				Token: cfg.Telegram.Token,
+				Token:     cfg.Telegram.Token,
+				ParseMode: "MarkdownV2",
 			}
 		}),
 		fx.Provide(func(cfg Config) messages.Config {
 			return messages.Config{
 				Templates: cfg.Telegram.Messages,
+				EscapeFn:  nil,
 			}
 		}),
 		fx.Provide(func(cfg Config) bot.Config {

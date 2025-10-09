@@ -70,7 +70,7 @@ func (b *Bot) Listen(ctx context.Context) error {
 	for update := range updates {
 		select {
 		case <-ctx.Done():
-			return ctx.Err()
+			return fmt.Errorf("bot stopped: %w", ctx.Err())
 		default:
 		}
 

@@ -18,7 +18,7 @@ type Probeer interface {
 }
 
 type ServiceStatus struct {
-	Id    string
+	ID    string
 	Name  string
 	State ServiceState
 	Error error

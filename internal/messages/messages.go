@@ -15,23 +15,23 @@ type OfflineContext struct {
 	Error string
 }
 
-type serviceState struct {
+type ServiceState struct {
 	Name  string
 	State string
 	Error string
 }
 
-func NewServiceState(name, state string, err error) serviceState {
+func NewServiceState(name, state string, err error) ServiceState {
 	errStr := ""
 	if err != nil {
 		errStr = err.Error()
 	}
 
-	return serviceState{
+	return ServiceState{
 		Name:  name,
-		State: string(state),
+		State: state,
 		Error: errStr,
 	}
 }
 
-type ServicesListContext []serviceState
+type ServicesListContext []ServiceState

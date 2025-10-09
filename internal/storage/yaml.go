@@ -1,28 +1,29 @@
 package storage
 
 import (
+	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v3"
 )
 
 type yamlRoot struct {
-	Services []Service `yaml:"services"`
+	Services []MonitoredService `yaml:"services"`
 }
 
 type yamlStorage struct {
 	Path string
 }
 
-func (s *yamlStorage) Load() ([]Service, error) {
+func (s *yamlStorage) Load() ([]MonitoredService, error) {
 	data, err := os.ReadFile(s.Path)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	root := yamlRoot{}
-	if err := yaml.Unmarshal(data, &root); err != nil {
-		return nil, err
+	root := new(yamlRoot)
+	if err := yaml.Unmarshal(data, root); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal yaml: %w", err)
 	}
 
 	return root.Services, nil

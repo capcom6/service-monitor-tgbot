@@ -53,7 +53,7 @@ func (s *Service) Render(name string, data any) (string, error) {
 
 func (s *Service) prepare(name string) (*template.Template, error) {
 	if _, ok := s.templates[name]; !ok {
-		return nil, fmt.Errorf("template %s not found", name)
+		return nil, fmt.Errorf("%w: %s", ErrTemplateNotFound, name)
 	}
 
 	s.mux.RLock()
