@@ -14,20 +14,18 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-var Module = fx.Module(
-	"app",
-	logger.Module,
-	config.Module(),
-	messages.Module(),
-	telegram.Module(),
-	monitor.Module(),
-	storage.Module,
-	bot.Module(),
-)
-
 func Run() {
 	fx.New(
-		Module,
+		fx.Module(
+			"app",
+			logger.Module,
+			config.Module(),
+			messages.Module(),
+			telegram.Module(),
+			monitor.Module(),
+			storage.Module(),
+			bot.Module(),
+		),
 		fx.WithLogger(func(logger *zap.Logger) fxevent.Logger {
 			logOption := fxevent.ZapLogger{Logger: logger}
 			logOption.UseLogLevel(zapcore.DebugLevel)

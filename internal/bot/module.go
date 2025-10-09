@@ -16,7 +16,14 @@ func Module() fx.Option {
 		"bot",
 		fxutil.WithNamedLogger("bot"),
 		fx.Provide(NewService),
-		fx.Invoke(func(s *Service, tg *telegram.Bot, messages *messages.Service, logger *zap.Logger, lc fx.Lifecycle, sh fx.Shutdowner) {
+		fx.Invoke(func(
+			s *Service,
+			tg *telegram.Bot,
+			messages *messages.Service,
+			logger *zap.Logger,
+			lc fx.Lifecycle,
+			sh fx.Shutdowner,
+		) {
 			ctx, cancel := context.WithCancel(context.Background())
 			wg := &sync.WaitGroup{}
 

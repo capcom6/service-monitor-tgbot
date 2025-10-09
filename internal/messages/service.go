@@ -1,6 +1,8 @@
 package messages
 
 import (
+	"fmt"
+
 	"github.com/capcom6/service-monitor-tgbot/pkg/templates"
 	"go.uber.org/zap"
 )
@@ -16,7 +18,7 @@ func NewService(cfg Config, logger *zap.Logger) *Service {
 		cfg.Templates = make(map[string]string)
 	}
 
-	for k, v := range messageTemplates {
+	for k, v := range defaultTemplates() {
 		if _, ok := cfg.Templates[k]; !ok {
 			cfg.Templates[k] = v
 		}
@@ -39,13 +41,22 @@ func (s *Service) SetEscapeFn(fn func(string) string) {
 }
 
 func (s *Service) Online(data OnlineContext) (string, error) {
-	return s.templatesSvc.Render(TemplateOnline, data)
+	return s.render(TemplateOnline, data)
 }
 
 func (s *Service) Offline(data OfflineContext) (string, error) {
-	return s.templatesSvc.Render(TemplateOffline, data)
+	return s.render(TemplateOffline, data)
 }
 
 func (s *Service) ServicesList(data ServicesListContext) (string, error) {
-	return s.templatesSvc.Render(TemplateServicesList, data)
+	return s.render(TemplateServicesList, data)
+}
+
+func (s *Service) render(name string, data any) (string, error) {
+	res, err := s.templatesSvc.Render(name, data)
+	if err != nil {
+		return "", fmt.Errorf("can't render template: %w", err)
+	}
+
+	return res, nil
 }

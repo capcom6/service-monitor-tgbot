@@ -14,13 +14,19 @@ type Service struct {
 	cfg Config
 
 	bot      *telegram.Bot
-	monitor  *monitor.MonitorModule
+	monitor  *monitor.Service
 	messages *messages.Service
 
 	logger *zap.Logger
 }
 
-func NewService(cfg Config, bot *telegram.Bot, monitor *monitor.MonitorModule, messages *messages.Service, logger *zap.Logger) *Service {
+func NewService(
+	cfg Config,
+	bot *telegram.Bot,
+	monitor *monitor.Service,
+	messages *messages.Service,
+	logger *zap.Logger,
+) *Service {
 	return &Service{
 		cfg: cfg,
 
@@ -41,7 +47,7 @@ func (s *Service) Run(ctx context.Context) error {
 	for v := range ch {
 		s.logger.Debug("probe", zap.String("name", v.Name), zap.String("state", string(v.State)), zap.Error(v.Error))
 
-		msg := ""
+		var msg string
 		if v.State == monitor.ServiceStateOffline {
 			msg, err = s.messages.Offline(
 				messages.OfflineContext{
@@ -70,7 +76,7 @@ func (s *Service) Run(ctx context.Context) error {
 	return nil
 }
 
-func (s *Service) HandleStatusCommand(ctx context.Context, cmd telegram.Command) {
+func (s *Service) HandleStatusCommand(_ context.Context, cmd telegram.Command) {
 	services := s.monitor.GetCurrentStatuses()
 
 	if len(services) == 0 {

@@ -1,9 +1,5 @@
 github.com/benbjohnson/clock v1.3.0 h1:ip6w0uFQkncKQ979AypyG0ER7mqUSBdKLOgAle/AT8A=
 github.com/benbjohnson/clock v1.3.0/go.mod h1:J11/hYXuz8f4ySSvYwY0FKfm+ezbsZBKZxNJlLklBHA=
-github.com/capcom6/go-infra-fx v0.4.0 h1:ijyEO6rOzLDLB8YvmqzcaIBw46ehDdx2GGzzR1m+VIQ=
-github.com/capcom6/go-infra-fx v0.4.0/go.mod h1:SpfKffK04JzQ18XNikHbKg3EhOdnUmItDfBFzmE0/9g=
-github.com/capcom6/go-infra-fx v0.4.1-0.20251005024431-e4d0c0a02560 h1:5fqj8oKnBdOs1DbMX1301iKLhxl1hf9/JzE8Mk4nFds=
-github.com/capcom6/go-infra-fx v0.4.1-0.20251005024431-e4d0c0a02560/go.mod h1:wUCgRVPEqDGeaPwHkWiMKlp68Ff2BI8aMN4XLxGMghw=
 github.com/capcom6/go-infra-fx v0.5.0 h1:9i5PWR8xTH6S5j90Xpf+JQu8UFu87sF2Guc/E0z+750=
 github.com/capcom6/go-infra-fx v0.5.0/go.mod h1:wUCgRVPEqDGeaPwHkWiMKlp68Ff2BI8aMN4XLxGMghw=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
@@ -18,8 +14,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/samber/lo v1.51.0 h1:kysRYLbHy/MB7kQZf5DSN50JHmMsNEdeY24VzJFu7wI=
 github.com/samber/lo v1.51.0/go.mod h1:4+MXEGsJzbKGaUEQFKBq2xtfuznW9oz/WrgyzMzRoM0=
-github.com/stretchr/testify v1.8.1 h1:w7B6lhMri9wdJUVmEZPGGhZzrYTPvgJArz7wNPgYKsk=
-github.com/stretchr/testify v1.8.1/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
+github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
+github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 go.uber.org/atomic v1.7.0 h1:ADUqmZGgLDDfbSL9ZmPxKTybcoEYHgpYfELNoN+7hsw=
 go.uber.org/atomic v1.7.0/go.mod h1:fEN4uk6kAWBTFdckzkM89CLk9XfWZrxpCo0nPH17wJc=
 go.uber.org/dig v1.17.0 h1:5Chju+tUvcC+N7N6EV08BJz41UZuO3BmHcN4A287ZLI=
