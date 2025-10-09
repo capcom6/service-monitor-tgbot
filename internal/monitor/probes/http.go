@@ -35,7 +35,7 @@ func (p *HTTPGet) Probe(ctx context.Context) error {
 
 	resp, err := p.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInfractructureError, err)
+		return fmt.Errorf("%w: %w", ErrInfrastructureError, err)
 	}
 
 	defer func() {
@@ -44,7 +44,7 @@ func (p *HTTPGet) Probe(ctx context.Context) error {
 	}()
 
 	if resp.StatusCode >= http.StatusBadRequest {
-		return fmt.Errorf("%w: %w", ErrResponseError, err)
+		return fmt.Errorf("%w: status %d", ErrResponseError, resp.StatusCode)
 	}
 
 	return nil
