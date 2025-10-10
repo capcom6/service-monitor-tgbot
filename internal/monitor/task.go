@@ -90,18 +90,18 @@ func (s *task) Monitor(ctx context.Context) (ProbesChannel, error) {
 		defer ticker.Stop()
 
 		for {
+			c, cancel := context.WithTimeout(ctx, time.Duration(s.config.TimeoutSeconds)*time.Second)
+			err := s.p.Probe(c)
+			cancel()
+
+			select {
+			case ch <- err:
+			case <-ctx.Done():
+				return
+			}
+
 			select {
 			case <-ticker.C:
-				c, cancel := context.WithTimeout(ctx, time.Duration(s.config.TimeoutSeconds)*time.Second)
-				err := s.p.Probe(c)
-				cancel()
-
-				select {
-				case ch <- err:
-				case <-ctx.Done():
-					return
-				}
-
 			case <-ctx.Done():
 				return
 			}
