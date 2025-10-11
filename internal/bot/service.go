@@ -41,7 +41,7 @@ func NewService(
 func (s *Service) Run(ctx context.Context) error {
 	ch, err := s.monitor.Monitor(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to monitor services: %w", err)
+		return fmt.Errorf("failed to start monitoring services: %w", err)
 	}
 
 	for v := range ch {
@@ -64,12 +64,18 @@ func (s *Service) Run(ctx context.Context) error {
 		}
 
 		if err != nil {
-			s.logger.Error("can't render template", zap.Error(err))
+			s.logger.Error("failed to render message template",
+				zap.String("service_name", v.Name),
+				zap.String("service_id", v.ID),
+				zap.Error(err))
 			continue
 		}
 
 		if _, err := s.bot.SendMessage(s.cfg.ChatID, msg); err != nil {
-			s.logger.Error("can't send message", zap.Error(err))
+			s.logger.Error("failed to send notification",
+				zap.String("service_name", v.Name),
+				zap.String("service_id", v.ID),
+				zap.Error(err))
 		}
 	}
 
@@ -81,7 +87,8 @@ func (s *Service) HandleStatusCommand(_ context.Context, cmd telegram.Command) {
 
 	if len(services) == 0 {
 		if _, err := s.bot.SendMessage(cmd.Chat, "No services configured."); err != nil {
-			s.logger.Error("can't send message", zap.Error(err))
+			s.logger.Error("failed to send status response",
+				zap.Error(err))
 		}
 		return
 	}
@@ -94,11 +101,13 @@ func (s *Service) HandleStatusCommand(_ context.Context, cmd telegram.Command) {
 
 	msg, err := s.messages.ServicesList(context)
 	if err != nil {
-		s.logger.Error("can't render template", zap.Error(err))
+		s.logger.Error("failed to render services list template",
+			zap.Error(err))
 		return
 	}
 
 	if _, err := s.bot.SendMessage(cmd.Chat, msg); err != nil {
-		s.logger.Error("can't send message", zap.Error(err))
+		s.logger.Error("failed to send services list",
+			zap.Error(err))
 	}
 }
