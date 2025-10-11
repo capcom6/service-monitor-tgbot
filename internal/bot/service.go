@@ -64,7 +64,7 @@ func (s *Service) Run(ctx context.Context) error {
 		}
 
 		if err != nil {
-			s.logger.Error("failed to render offline message template",
+			s.logger.Error("failed to render message template",
 				zap.String("service_name", v.Name),
 				zap.String("service_id", v.ID),
 				zap.Error(err))
@@ -72,7 +72,7 @@ func (s *Service) Run(ctx context.Context) error {
 		}
 
 		if _, err := s.bot.SendMessage(s.cfg.ChatID, msg); err != nil {
-			s.logger.Error("failed to send offline notification",
+			s.logger.Error("failed to send notification",
 				zap.String("service_name", v.Name),
 				zap.String("service_id", v.ID),
 				zap.Error(err))
