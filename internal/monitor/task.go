@@ -69,7 +69,7 @@ func newTask(config taskConfig) (*task, error) {
 
 func (s *task) Monitor(ctx context.Context) (ProbesChannel, error) {
 	if s.p == nil {
-		return nil, fmt.Errorf("%w: no probeer", ErrInvalidConfig)
+		return nil, fmt.Errorf("%w: no probeer configured", ErrInvalidConfig)
 	}
 
 	ch := make(ProbesChannel)

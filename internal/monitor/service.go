@@ -41,12 +41,12 @@ func (m *Service) initializeProbes(ctx context.Context) error {
 	for i, cfg := range m.services {
 		mon, err := newTask(newTaskConfig(cfg))
 		if err != nil {
-			return fmt.Errorf("failed to initialize probe for service %q: %w", cfg.ID, err)
+			return NewProbeInitializationError(cfg.ID, cfg.Name, err)
 		}
 
 		monCh, err := mon.Monitor(ctx)
 		if err != nil {
-			return fmt.Errorf("failed to initialize probe for service %q: %w", cfg.ID, err)
+			return NewProbeInitializationError(cfg.ID, cfg.Name, err)
 		}
 		m.probes[i] = monCh
 	}
