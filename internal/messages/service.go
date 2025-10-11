@@ -55,7 +55,7 @@ func (s *Service) ServicesList(data ServicesListContext) (string, error) {
 func (s *Service) render(name string, data any) (string, error) {
 	res, err := s.templatesSvc.Render(name, data)
 	if err != nil {
-		return "", fmt.Errorf("can't render template: %w", err)
+		return "", fmt.Errorf("can't render template %s: %w", name, err)
 	}
 
 	return res, nil

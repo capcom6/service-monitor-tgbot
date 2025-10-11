@@ -56,7 +56,7 @@ func newTask(config taskConfig) (*task, error) {
 	case config.TCPSocket.Host != "":
 		p = probes.NewTCPSocket(config.TCPSocket)
 	default:
-		return nil, fmt.Errorf("%w: no probeer", ErrInvalidConfig)
+		return nil, fmt.Errorf("%w: no probe configured", ErrInvalidConfig)
 	}
 
 	svc := task{
@@ -69,7 +69,7 @@ func newTask(config taskConfig) (*task, error) {
 
 func (s *task) Monitor(ctx context.Context) (ProbesChannel, error) {
 	if s.p == nil {
-		return nil, fmt.Errorf("%w: no probeer", ErrInvalidConfig)
+		return nil, fmt.Errorf("%w: no probeer configured", ErrInvalidConfig)
 	}
 
 	ch := make(ProbesChannel)
