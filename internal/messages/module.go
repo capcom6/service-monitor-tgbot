@@ -1,14 +1,14 @@
 package messages
 
 import (
-	"github.com/capcom6/go-infra-fx/fxutil"
+	"github.com/go-core-fx/logger"
 	"go.uber.org/fx"
 )
 
 func Module() fx.Option {
 	return fx.Module(
 		"messages",
-		fxutil.WithNamedLogger("messages"),
+		logger.WithNamedLogger("messages"),
 		fx.Provide(NewService),
 	)
 }

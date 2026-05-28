@@ -12,6 +12,7 @@ type OnlineContext struct {
 
 type OfflineContext struct {
 	OnlineContext
+
 	Error string
 }
 

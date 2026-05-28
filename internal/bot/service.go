@@ -71,11 +71,11 @@ func (s *Service) Run(ctx context.Context) error {
 			continue
 		}
 
-		if _, err := s.bot.SendMessage(s.cfg.ChatID, msg); err != nil {
+		if _, sendErr := s.bot.SendMessage(s.cfg.ChatID, msg); sendErr != nil {
 			s.logger.Error("failed to send notification",
 				zap.String("service_name", v.Name),
 				zap.String("service_id", v.ID),
-				zap.Error(err))
+				zap.Error(sendErr))
 		}
 	}
 
@@ -106,8 +106,8 @@ func (s *Service) HandleStatusCommand(_ context.Context, cmd telegram.Command) {
 		return
 	}
 
-	if _, err := s.bot.SendMessage(cmd.Chat, msg); err != nil {
+	if _, sendErr := s.bot.SendMessage(cmd.Chat, msg); sendErr != nil {
 		s.logger.Error("failed to send services list",
-			zap.Error(err))
+			zap.Error(sendErr))
 	}
 }

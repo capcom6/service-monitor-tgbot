@@ -33,10 +33,11 @@ func NewService(storage storage.Storage, logger *zap.Logger) (*Service, error) {
 
 		probes: make([]ProbesChannel, len(services)),
 		states: make([]state, len(services)),
+		mu:     sync.RWMutex{},
 	}, nil
 }
 
-// initializeProbes creates monitoring tasks for all services and returns any initialization error
+// initializeProbes creates monitoring tasks for all services and returns any initialization error.
 func (m *Service) initializeProbes(ctx context.Context) error {
 	for i, cfg := range m.services {
 		mon, err := newTask(newTaskConfig(cfg))
@@ -87,7 +88,11 @@ func (m *Service) startProbe(ctx context.Context, id int, ch ProbesChannel, updC
 
 	for {
 		select {
-		case probe := <-ch:
+		case probe, ok := <-ch:
+			if !ok {
+				m.logger.Warn("Probe channel closed", zap.String("id", m.services[id].ID))
+				return
+			}
 			if update := m.updateState(id, probe); update != nil {
 				select {
 				case updCh <- *update:
@@ -151,7 +156,7 @@ func (m *Service) updateState(id int, probe error) *ServiceStatus {
 	return upd
 }
 
-// GetCurrentStatuses returns the current status of all services
+// GetCurrentStatuses returns the current status of all services.
 func (m *Service) GetCurrentStatuses() []ServiceStatus {
 	statuses := make([]ServiceStatus, len(m.services))
 

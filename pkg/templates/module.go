@@ -1,14 +1,14 @@
 package templates
 
 import (
-	"github.com/capcom6/go-infra-fx/fxutil"
+	"github.com/go-core-fx/logger"
 	"go.uber.org/fx"
 )
 
 func Module() fx.Option {
 	return fx.Module(
 		"templates",
-		fxutil.WithNamedLogger("templates"),
+		logger.WithNamedLogger("templates"),
 		fx.Provide(NewService),
 	)
 }

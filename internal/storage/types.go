@@ -67,7 +67,8 @@ func (s *MonitoredService) Validate() error {
 }
 
 type HTTPGet struct {
-	TCPSocket   `yaml:",inline"`
+	TCPSocket `yaml:",inline"`
+
 	Scheme      string      `yaml:"scheme"`
 	Path        string      `yaml:"path"`
 	HTTPHeaders HTTPHeaders `yaml:"httpHeaders"`
@@ -98,7 +99,7 @@ func (s *HTTPGet) Validate() error {
 type HTTPHeaders []HTTPHeader
 
 type HTTPHeader struct {
-	Name  string `yaml:"name" validate:"required"`
+	Name  string `yaml:"name"  validate:"required"`
 	Value string `yaml:"value" validate:"required"`
 }
 

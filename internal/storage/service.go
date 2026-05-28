@@ -23,8 +23,8 @@ func (s *Service) Load() ([]MonitoredService, error) {
 	}
 
 	for i := range services {
-		if err := services[i].Validate(); err != nil {
-			return nil, fmt.Errorf("failed to validate service %s: %w", services[i].Name, err)
+		if validateErr := services[i].Validate(); validateErr != nil {
+			return nil, fmt.Errorf("failed to validate service %s: %w", services[i].Name, validateErr)
 		}
 	}
 
