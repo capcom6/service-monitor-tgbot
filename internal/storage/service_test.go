@@ -7,6 +7,7 @@ import (
 	"github.com/capcom6/service-monitor-tgbot/internal/storage"
 )
 
+//nolint:gochecknoglobals // for tests
 var (
 	emptyService = storage.MonitoredService{}
 	tcpService   = storage.MonitoredService{
@@ -47,8 +48,12 @@ var (
 		TimeoutSeconds:         1,
 		SuccessThreshold:       1,
 		FailureThreshold:       3,
-		HTTPGet:                storage.HTTPGet{TCPSocket: storage.TCPSocket{Host: "google.com", Port: 80}, Scheme: "http", Path: "/"},
-		TCPSocket:              storage.TCPSocket{},
+		HTTPGet: storage.HTTPGet{
+			TCPSocket: storage.TCPSocket{Host: "google.com", Port: 80},
+			Scheme:    "http",
+			Path:      "/",
+		},
+		TCPSocket: storage.TCPSocket{},
 	}
 )
 

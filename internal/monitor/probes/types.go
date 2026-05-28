@@ -7,6 +7,7 @@ type TCPSocketConfig struct {
 
 type HTTPGetConfig struct {
 	TCPSocketConfig
+
 	Scheme      string              // схема http/https
 	Path        string              // путь
 	HTTPHeaders map[string][]string // заголовки запроса

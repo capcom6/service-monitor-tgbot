@@ -3,14 +3,14 @@ package storage
 import (
 	"os"
 
-	"github.com/capcom6/go-infra-fx/fxutil"
+	"github.com/go-core-fx/logger"
 	"go.uber.org/fx"
 )
 
 func Module() fx.Option {
 	return fx.Module(
 		"storage",
-		fxutil.WithNamedLogger("storage"),
+		logger.WithNamedLogger("storage"),
 		fx.Provide(func() Storage {
 			return NewService(
 				&yamlStorage{

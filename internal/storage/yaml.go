@@ -22,8 +22,8 @@ func (s *yamlStorage) Load() ([]MonitoredService, error) {
 	}
 
 	root := new(yamlRoot)
-	if err := yaml.Unmarshal(data, root); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal yaml: %w", err)
+	if yamlErr := yaml.Unmarshal(data, root); yamlErr != nil {
+		return nil, fmt.Errorf("failed to unmarshal yaml: %w", yamlErr)
 	}
 
 	return root.Services, nil

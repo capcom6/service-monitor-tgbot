@@ -44,8 +44,8 @@ func (s *Service) Render(name string, data any) (string, error) {
 	}
 
 	builder := strings.Builder{}
-	if err := tmpl.Execute(&builder, data); err != nil {
-		return "", fmt.Errorf("can't execute template: %w", err)
+	if execErr := tmpl.Execute(&builder, data); execErr != nil {
+		return "", fmt.Errorf("can't execute template: %w", execErr)
 	}
 
 	return builder.String(), nil

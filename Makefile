@@ -1,48 +1,61 @@
-project_name = service-monitor-tgbot
-image_name = capcom6/$(project_name):latest
+.PHONY: all version fmt lint test coverage benchmark air deps gen release clean build help
 
-extension=
-ifeq ($(OS),Windows_NT)
-	extension = .exe
-endif
+BINARY_NAME := $(shell basename $(PWD))
+GIT_VERSION := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+VERSION ?= $(GIT_VERSION)
+DOCKER_CR ?= $(shell basename $$(dirname $(PWD)))
+DOCKER_IMAGE := ${DOCKER_CR}/$(BINARY_NAME):$(VERSION)
 
-run:
-	go run ./cmd/$(project_name)/main.go
+all: fmt lint coverage ## Run all tests and checks
 
-init-dev:
-	go mod download \
-		&& go install github.com/cosmtrek/air@latest
+version: ## Display current version
+	@echo "Current version: $(VERSION)"
 
-init: init-dev
-	go mod download \
-		&& go install github.com/cosmtrek/air@latest
+fmt: gen ## Format code
+	golangci-lint fmt
 
-air:
-	air
+lint: ## Run linter
+	golangci-lint run --timeout=5m
 
-db-upgrade:
-	goose up
+test: ## Run tests
+	go test -race -shuffle=on -count=1 -covermode=atomic -coverpkg=./... -coverprofile=coverage.out ./...
 
-db-upgrade-raw:
-	go run ./cmd/$(project_name)/main.go db-upgrade
+coverage: test ## Generate coverage
+	go tool cover -func=coverage.out
+	go tool cover -html=coverage.out -o coverage.html
 
-test:
-	go test ./...
+benchmark: ## Run benchmarks
+	go test -run=^$$ -bench=. -benchmem ./... | tee benchmark.txt
 
-api-docs:
-	swag fmt -g ./cmd/$(project_name)/main.go \
-		&& swag init -g ./cmd/$(project_name)/main.go -o ./api
+air: ## Run development server
+	@command -v air >/dev/null 2>&1 || { \
+      echo "Please install air: go install github.com/air-verse/air@latest"; \
+      exit 1; \
+    }
+	@echo "Starting development server with air..."
+	TZ=UTC DEBUG=1 air
 
-view-docs:
-	php -S 127.0.0.1:8080 -t ./api
+deps: ## Install dependencies
+	go mod download
 
-docker-build:
-	docker build -f build/package/Dockerfile -t $(image_name) --build-arg APP=$(project_name) .
+gen: ## Generate code
+	go generate ./...
 
-docker:
-	docker-compose -f deployments/docker-compose/docker-compose.yml up --build
+release: ## Create release
+	goreleaser release --snapshot --clean
 
-docker-dev:
-	docker-compose -f deployments/docker-compose/docker-compose.dev.yml up --build
+clean: ## Clean build artifacts
+	rm -f coverage.* benchmark.txt
+	rm -rf dist bin
 
-.PHONY: init air db-upgrade db-upgrade-raw test api-docs view-docs
+build: ## Build the project
+	@echo "Building the project..."
+	@mkdir -p bin
+	go build -o bin/$(BINARY_NAME) .
+
+help: ## Show help
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+# Use the wildcard function to expand the pattern to a list of existing files
+# and then include that list of files.
+include $(wildcard *.mk)

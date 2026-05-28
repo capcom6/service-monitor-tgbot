@@ -1,22 +1,36 @@
 package config
 
 import (
-	"github.com/capcom6/go-infra-fx/config"
-	"github.com/capcom6/go-infra-fx/fxutil"
 	"github.com/capcom6/service-monitor-tgbot/internal/bot"
 	"github.com/capcom6/service-monitor-tgbot/internal/messages"
 	"github.com/capcom6/service-monitor-tgbot/pkg/telegram"
+	"github.com/go-core-fx/fiberfx"
+	"github.com/go-core-fx/fiberfx/openapi"
+	"github.com/go-core-fx/logger"
 	"go.uber.org/fx"
 )
 
 func Module() fx.Option {
 	return fx.Module(
 		"config",
-		fxutil.WithNamedLogger("config"),
-		fx.Provide(func() (Config, error) {
-			defaultConfig := new(Config)
-			return *defaultConfig, config.LoadConfig(defaultConfig)
-		}),
+		logger.WithNamedLogger("config"),
+		fx.Provide(New, fx.Private),
+		fx.Provide(
+			func(cfg Config) fiberfx.Config {
+				return fiberfx.Config{
+					Address:     cfg.HTTP.Address,
+					ProxyHeader: cfg.HTTP.ProxyHeader,
+					Proxies:     cfg.HTTP.Proxies,
+				}
+			},
+			func(cfg Config) openapi.Config {
+				return openapi.Config{
+					Enabled:    cfg.HTTP.OpenAPI.Enabled,
+					PublicHost: cfg.HTTP.OpenAPI.PublicHost,
+					PublicPath: cfg.HTTP.OpenAPI.PublicPath,
+				}
+			},
+		),
 		fx.Provide(func(cfg Config) telegram.Config {
 			return telegram.Config{
 				Token:     cfg.Telegram.Token,
