@@ -1,10 +1,16 @@
 package telegram
 
-import tg "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+import (
+	"time"
+
+	tg "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
 
 type Config struct {
 	Token     string
 	ParseMode string
+	ProxyURL  string
+	Timeout   time.Duration
 }
 
 func (c Config) Validate() error {
