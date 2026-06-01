@@ -3,9 +3,12 @@ package telegram
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/url"
 
 	tg "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.uber.org/zap"
+	"golang.org/x/net/proxy"
 )
 
 type Bot struct {
@@ -18,6 +21,35 @@ type Bot struct {
 	logger *zap.Logger
 }
 
+func newProxyClient(proxyURL string) (*http.Client, error) {
+	if proxyURL == "" {
+		return &http.Client{}, nil
+	}
+
+	u, err := url.Parse(proxyURL)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to parse proxy URL: %w", ErrInvalidConfig, err)
+	}
+
+	dialer, err := proxy.FromURL(u, proxy.Direct)
+	if err != nil {
+		return nil, fmt.Errorf("%w: failed to create proxy dialer: %w", ErrInvalidConfig, err)
+	}
+
+	contextDialer, ok := dialer.(proxy.ContextDialer)
+	if !ok {
+		return nil, fmt.Errorf("%w: proxy dialer does not support context", ErrInvalidConfig)
+	}
+
+	transport := &http.Transport{
+		DialContext: contextDialer.DialContext,
+	}
+
+	return &http.Client{
+		Transport: transport,
+	}, nil
+}
+
 func NewBot(config Config, logger *zap.Logger) (*Bot, error) {
 	config = config.ApplyDefaults()
 
@@ -25,19 +57,23 @@ func NewBot(config Config, logger *zap.Logger) (*Bot, error) {
 		return nil, err
 	}
 
-	api, err := tg.NewBotAPI(config.Token)
+	client, err := newProxyClient(config.ProxyURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP client: %w", err)
+	}
+
+	client.Timeout = config.Timeout
+
+	api, err := tg.NewBotAPIWithClient(config.Token, tg.APIEndpoint, client)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create bot: %w", err)
 	}
 
 	return &Bot{
-		cfg: config,
-
-		api: api,
-
+		cfg:      config,
+		api:      api,
 		handlers: make(map[string]CommandHandler),
-
-		logger: logger,
+		logger:   logger,
 	}, nil
 }
 

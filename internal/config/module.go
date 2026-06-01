@@ -21,6 +21,8 @@ func Module() fx.Option {
 			return telegram.Config{
 				Token:     cfg.Telegram.Token,
 				ParseMode: "MarkdownV2",
+				ProxyURL:  cfg.Telegram.ProxyURL,
+				Timeout:   cfg.Telegram.Timeout,
 			}
 		}),
 		fx.Provide(func(cfg Config) messages.Config {

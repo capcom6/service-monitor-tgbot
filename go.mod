@@ -10,6 +10,7 @@ require (
 	github.com/samber/lo v1.51.0
 	go.uber.org/fx v1.20.1
 	go.uber.org/zap v1.26.0
+	golang.org/x/net v0.38.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
