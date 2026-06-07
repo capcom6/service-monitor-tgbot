@@ -23,13 +23,12 @@ type openAPIConfig struct {
 }
 
 type telegramConfig struct {
-	Token      string           `koanf:"token"`
-	ProxyURL   string           `koanf:"proxyUrl"`
-	Timeout    time.Duration    `koanf:"timeout"`
-	ChatID     int64            `koanf:"chatId"`
-	WebhookURL string           `koanf:"webhookUrl"`
-	Debug      bool             `koanf:"debug"`
-	Messages   TelegramMessages `koanf:"messages"`
+	Token    string           `koanf:"token"`
+	ProxyURL string           `koanf:"proxy_url"`
+	Timeout  time.Duration    `koanf:"timeout"`
+	ChatID   int64            `koanf:"chatId"`
+	Debug    bool             `koanf:"debug"`
+	Messages TelegramMessages `koanf:"messages"`
 }
 
 type TelegramMessages map[string]string
@@ -52,13 +51,12 @@ func Default() Config {
 			},
 		},
 		Telegram: telegramConfig{
-			Token:      "",
-			ProxyURL:   "",
-			Timeout:    0,
-			ChatID:     0,
-			WebhookURL: "",
-			Debug:      false,
-			Messages:   TelegramMessages{},
+			Token:    "",
+			ProxyURL: "",
+			Timeout:  0,
+			ChatID:   0,
+			Debug:    false,
+			Messages: TelegramMessages{},
 		},
 	}
 }
