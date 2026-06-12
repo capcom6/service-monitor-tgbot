@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.3.0
+
+### Added
+- `ChangedAt` and `Duration` fields exposed in message templates (online, offline, services_list)
+- Timestamp tracking of state transitions in the `/status` command
+
 ## v1.2.0
 
 ### Added
