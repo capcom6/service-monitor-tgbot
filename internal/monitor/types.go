@@ -18,10 +18,11 @@ type Probeer interface {
 }
 
 type ServiceStatus struct {
-	ID    string
-	Name  string
-	State ServiceState
-	Error error
+	ID        string
+	Name      string
+	State     ServiceState
+	Error     error
+	ChangedAt time.Time
 }
 
 type state struct {
@@ -29,6 +30,7 @@ type state struct {
 	Online    bool
 	Error     error
 	Timestamp time.Time
+	ChangedAt time.Time
 }
 
 func (s state) State() ServiceState {

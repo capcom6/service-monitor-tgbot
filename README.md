@@ -124,11 +124,11 @@ The bot uses a flexible template system for customizing notification messages. T
 
 Available templates:
 
-| Template        | Variables                                                                                                                | Description                           |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
-| `online`        | `Name` - name of the service                                                                                             | message when a service goes "online"  |
-| `offline`       | `Name` - name of the service<br>`Error` - error message                                                                  | message when a service goes "offline" |
-| `services_list` | `.` - list of all services:<br>`Name` - name of the service<br>`State` - state of the service<br>`Error` - error message | message with a list of all services   |
+| Template        | Variables                                                                                                                                                                                                                                 | Description                           |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `online`        | `Name` - name of the service<br>`ChangedAt` - when the service entered this state<br>`Duration` - how long the service has been in this state                                                                                             | message when a service goes "online"  |
+| `offline`       | `Name` - name of the service<br>`Error` - error message<br>`ChangedAt` - when the service entered this state<br>`Duration` - how long the service has been in this state                                                                  | message when a service goes "offline" |
+| `services_list` | `.` - list of all services:<br>`Name` - name of the service<br>`State` - state of the service<br>`Error` - error message<br>`ChangedAt` - when the service entered this state<br>`Duration` - how long the service has been in this state | message with a list of all services   |
 
 ### Commands
 

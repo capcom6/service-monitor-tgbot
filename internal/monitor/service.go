@@ -128,22 +128,26 @@ func (m *Service) updateState(id int, probe error) *ServiceStatus {
 	if !current.Online && current.Probes == int(service.SuccessThreshold) {
 		current.Online = true
 		current.Error = nil
+		current.ChangedAt = time.Now()
 
 		upd = &ServiceStatus{
-			ID:    service.ID,
-			Name:  service.Name,
-			State: ServiceStateOnline,
-			Error: nil,
+			ID:        service.ID,
+			Name:      service.Name,
+			State:     ServiceStateOnline,
+			Error:     nil,
+			ChangedAt: current.ChangedAt,
 		}
 	} else if current.Online && current.Probes == -int(service.FailureThreshold) {
 		current.Online = false
 		current.Error = probe
+		current.ChangedAt = time.Now()
 
 		upd = &ServiceStatus{
-			ID:    service.ID,
-			Name:  service.Name,
-			State: ServiceStateOffline,
-			Error: probe,
+			ID:        service.ID,
+			Name:      service.Name,
+			State:     ServiceStateOffline,
+			Error:     probe,
+			ChangedAt: current.ChangedAt,
 		}
 	}
 
@@ -166,10 +170,11 @@ func (m *Service) GetCurrentStatuses() []ServiceStatus {
 	for i, service := range m.services {
 		state := m.states[i]
 		statuses[i] = ServiceStatus{
-			ID:    service.ID,
-			Name:  service.Name,
-			State: state.State(),
-			Error: state.Error,
+			ID:        service.ID,
+			Name:      service.Name,
+			State:     state.State(),
+			Error:     state.Error,
+			ChangedAt: state.ChangedAt,
 		}
 	}
 

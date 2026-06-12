@@ -47,19 +47,25 @@ func (s *Service) Run(ctx context.Context) error {
 	for v := range ch {
 		s.logger.Debug("probe", zap.String("name", v.Name), zap.String("state", string(v.State)), zap.Error(v.Error))
 
+		duration := messages.FormatDurationSince(v.ChangedAt)
+
 		var msg string
 		if v.State == monitor.ServiceStateOffline {
 			msg, err = s.messages.Offline(
 				messages.OfflineContext{
 					OnlineContext: messages.OnlineContext{
-						Name: v.Name,
+						Name:      v.Name,
+						ChangedAt: v.ChangedAt,
+						Duration:  duration,
 					},
 					Error: v.Error.Error(),
 				},
 			)
 		} else {
 			msg, err = s.messages.Online(messages.OnlineContext{
-				Name: v.Name,
+				Name:      v.Name,
+				ChangedAt: v.ChangedAt,
+				Duration:  duration,
 			})
 		}
 
@@ -96,7 +102,7 @@ func (s *Service) HandleStatusCommand(_ context.Context, cmd telegram.Command) {
 	context := make(messages.ServicesListContext, len(services))
 
 	for i, service := range services {
-		context[i] = messages.NewServiceState(service.Name, string(service.State), service.Error)
+		context[i] = messages.NewServiceState(service.Name, string(service.State), service.Error, service.ChangedAt)
 	}
 
 	msg, err := s.messages.ServicesList(context)
