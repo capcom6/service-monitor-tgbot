@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 type HTTPGet struct {
@@ -33,9 +34,10 @@ func (p *HTTPGet) Probe(ctx context.Context) error {
 
 	req.Header = p.Config.HTTPHeaders
 
+	start := time.Now()
 	resp, err := p.client.Do(req)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrInfrastructureError, err)
+		return fmt.Errorf("%w after %s: %w", ErrInfrastructureError, time.Since(start), err)
 	}
 
 	defer func() {
@@ -44,7 +46,15 @@ func (p *HTTPGet) Probe(ctx context.Context) error {
 	}()
 
 	if resp.StatusCode >= http.StatusBadRequest {
-		return fmt.Errorf("%w: status %d", ErrResponseError, resp.StatusCode)
+		const maxBodyLen = 512
+		bodyBytes, _ := io.ReadAll(io.LimitReader(resp.Body, maxBodyLen))
+		return fmt.Errorf(
+			"%w: status %d, body %q, duration %s",
+			ErrResponseError,
+			resp.StatusCode,
+			string(bodyBytes),
+			time.Since(start),
+		)
 	}
 
 	return nil
