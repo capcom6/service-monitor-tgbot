@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"time"
 )
 
 type TCPSocket struct {
@@ -20,9 +21,10 @@ func NewTCPSocket(cfg TCPSocketConfig) *TCPSocket {
 }
 
 func (p *TCPSocket) Probe(ctx context.Context) error {
+	start := time.Now()
 	conn, err := p.dialer.DialContext(ctx, "tcp", fmt.Sprintf("%s:%d", p.Config.Host, p.Config.Port))
 	if err != nil {
-		return fmt.Errorf("failed to dial: %w", err)
+		return fmt.Errorf("failed to dial after %s: %w", time.Since(start), err)
 	}
 
 	_ = conn.Close()
