@@ -53,7 +53,7 @@ func Default() Config {
 		Telegram: telegramConfig{
 			Token:    "",
 			ProxyURL: "",
-			Timeout:  0,
+			Timeout:  time.Minute,
 			ChatID:   0,
 			Debug:    false,
 			Messages: TelegramMessages{},
