@@ -16,6 +16,7 @@ services: # list of services to monitor
     timeoutSeconds: 1 # response timeout in seconds, default: 1
     successThreshold: 1 # number of consecutive successful connections to go "online", default: 1
     failureThreshold: 3 # number of consecutive connection errors to go "offline", default: 3
+    alertCooldownSeconds: 300 # minimum seconds between consecutive alerts for this service, default: 0 (disabled)
     httpGet: # HTTP(S) service check
       scheme: https # http/https scheme
       host: google.com # service address

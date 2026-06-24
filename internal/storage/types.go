@@ -21,6 +21,9 @@ type MonitoredService struct {
 	SuccessThreshold uint8 `yaml:"successThreshold" validate:"gt=0"`
 	// FailureThreshold is the number of failed monitoring attempts needed to consider the service as "offline".
 	FailureThreshold uint8 `yaml:"failureThreshold" validate:"gt=0"`
+	// AlertCooldownSeconds is the minimum number of seconds between consecutive alerts.
+	// If set to 0 (default), no cooldown is applied.
+	AlertCooldownSeconds uint32 `yaml:"alertCooldownSeconds"`
 	// HTTPGet is the HTTP request to send to the service.
 	HTTPGet HTTPGet `yaml:"httpGet,omitempty" validate:"required_without=TCPSocket"`
 	// TCPSocket is the TCP socket to connect to the service.

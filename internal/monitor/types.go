@@ -26,11 +26,12 @@ type ServiceStatus struct {
 }
 
 type state struct {
-	Probes    int
-	Online    bool
-	Error     error
-	Timestamp time.Time
-	ChangedAt time.Time
+	Probes        int
+	Online        bool
+	Error         error
+	Timestamp     time.Time
+	ChangedAt     time.Time
+	LastAlertedAt time.Time
 }
 
 func (s state) State() ServiceState {

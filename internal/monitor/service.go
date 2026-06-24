@@ -118,37 +118,19 @@ func (m *Service) updateState(id int, probe error) *ServiceStatus {
 
 	if (current.Probes > 0 && delta > 0) ||
 		(current.Probes < 0 && delta < 0) {
-		// если знак совпадает, то продолжаем
 		current.Probes += delta
 	} else {
 		current.Probes = delta
 	}
 
+	cooldown := time.Duration(service.AlertCooldownSeconds) * time.Second
+	inCooldown := cooldown > 0 && time.Since(current.LastAlertedAt) < cooldown
+
 	var upd *ServiceStatus
-	if !current.Online && current.Probes == int(service.SuccessThreshold) {
-		current.Online = true
-		current.Error = nil
-		current.ChangedAt = time.Now()
-
-		upd = &ServiceStatus{
-			ID:        service.ID,
-			Name:      service.Name,
-			State:     ServiceStateOnline,
-			Error:     nil,
-			ChangedAt: current.ChangedAt,
-		}
-	} else if current.Online && current.Probes == -int(service.FailureThreshold) {
-		current.Online = false
-		current.Error = probe
-		current.ChangedAt = time.Now()
-
-		upd = &ServiceStatus{
-			ID:        service.ID,
-			Name:      service.Name,
-			State:     ServiceStateOffline,
-			Error:     probe,
-			ChangedAt: current.ChangedAt,
-		}
+	if !current.Online && current.Probes >= int(service.SuccessThreshold) {
+		upd = m.handleTransitionToOnline(&current, service, inCooldown)
+	} else if current.Online && current.Probes <= -int(service.FailureThreshold) {
+		upd = m.handleTransitionToOffline(&current, service, probe, inCooldown)
 	}
 
 	current.Timestamp = time.Now()
@@ -158,6 +140,55 @@ func (m *Service) updateState(id int, probe error) *ServiceStatus {
 	m.mu.Unlock()
 
 	return upd
+}
+
+func (m *Service) handleTransitionToOnline(
+	current *state,
+	service storage.MonitoredService,
+	inCooldown bool,
+) *ServiceStatus {
+	if inCooldown {
+		current.Probes = int(service.SuccessThreshold) - 1
+		return nil
+	}
+
+	current.Online = true
+	current.Error = nil
+	current.ChangedAt = time.Now()
+	current.LastAlertedAt = time.Now()
+
+	return &ServiceStatus{
+		ID:        service.ID,
+		Name:      service.Name,
+		State:     ServiceStateOnline,
+		Error:     nil,
+		ChangedAt: current.ChangedAt,
+	}
+}
+
+func (m *Service) handleTransitionToOffline(
+	current *state,
+	service storage.MonitoredService,
+	probe error,
+	inCooldown bool,
+) *ServiceStatus {
+	if inCooldown {
+		current.Probes = -(int(service.FailureThreshold) - 1)
+		return nil
+	}
+
+	current.Online = false
+	current.Error = probe
+	current.ChangedAt = time.Now()
+	current.LastAlertedAt = time.Now()
+
+	return &ServiceStatus{
+		ID:        service.ID,
+		Name:      service.Name,
+		State:     ServiceStateOffline,
+		Error:     probe,
+		ChangedAt: current.ChangedAt,
+	}
 }
 
 // GetCurrentStatuses returns the current status of all services.
