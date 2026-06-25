@@ -9,6 +9,10 @@ telegram:
       {{ range . }}
         {{- .Name | escape }}: *{{ .State | escape }}* {{ if eq .State "online" }}✅{{ else }}❌ {{ if .Error }} \({{ printf "%s" .Error | escape}}\) {{ end }} {{ end }}
       {{ end }}
+# Storage backend (optional, default: file://$CONFIG_PATH)
+# DSN format: file://./path/to/services.yml or redis://host:port/db?key=<key>&channel=<channel>
+# storage:
+#   dsn: file://./configs/services.yml
 services: # list of services to monitor
   - name: Google # name for notifications
     initialDelaySeconds: 5 # delay before first check in seconds, default: 0; if less than 0, random value between 0 and `periodSeconds` is used

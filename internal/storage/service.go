@@ -4,6 +4,7 @@ import "fmt"
 
 type Storage interface {
 	Load() ([]MonitoredService, error)
+	Close() error
 }
 
 type Service struct {
@@ -29,4 +30,12 @@ func (s *Service) Load() ([]MonitoredService, error) {
 	}
 
 	return services, nil
+}
+
+func (s *Service) Close() error {
+	if err := s.storage.Close(); err != nil {
+		return fmt.Errorf("failed to close storage: %w", err)
+	}
+
+	return nil
 }

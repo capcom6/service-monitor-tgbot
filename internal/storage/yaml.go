@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"net/url"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -11,11 +12,29 @@ type yamlRoot struct {
 	Services []MonitoredService `yaml:"services"`
 }
 
-type yamlStorage struct {
+type YamlStorage struct {
 	Path string
 }
 
-func (s *yamlStorage) Load() ([]MonitoredService, error) {
+func newYamlStorage(u *url.URL) (Storage, error) {
+	var path string
+	switch {
+	case u.Opaque != "":
+		path = u.Opaque
+	case u.Host == "localhost":
+		path = u.Path
+	case u.Host != "":
+		path = u.Host + u.Path
+	default:
+		path = u.Path
+	}
+
+	return &YamlStorage{
+		Path: path,
+	}, nil
+}
+
+func (s *YamlStorage) Load() ([]MonitoredService, error) {
 	data, err := os.ReadFile(s.Path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
@@ -27,4 +46,8 @@ func (s *yamlStorage) Load() ([]MonitoredService, error) {
 	}
 
 	return root.Services, nil
+}
+
+func (s *YamlStorage) Close() error {
+	return nil
 }
