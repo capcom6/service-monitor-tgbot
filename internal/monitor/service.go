@@ -147,14 +147,15 @@ func (m *Service) handleTransitionToOnline(
 	service storage.MonitoredService,
 	inCooldown bool,
 ) *ServiceStatus {
+	current.Online = true
+	current.Error = nil
+	current.ChangedAt = time.Now()
+
 	if inCooldown {
 		current.Probes = int(service.SuccessThreshold) - 1
 		return nil
 	}
 
-	current.Online = true
-	current.Error = nil
-	current.ChangedAt = time.Now()
 	current.LastAlertedAt = time.Now()
 
 	return &ServiceStatus{
@@ -172,14 +173,15 @@ func (m *Service) handleTransitionToOffline(
 	probe error,
 	inCooldown bool,
 ) *ServiceStatus {
+	current.Online = false
+	current.Error = probe
+	current.ChangedAt = time.Now()
+
 	if inCooldown {
 		current.Probes = -(int(service.FailureThreshold) - 1)
 		return nil
 	}
 
-	current.Online = false
-	current.Error = probe
-	current.ChangedAt = time.Now()
 	current.LastAlertedAt = time.Now()
 
 	return &ServiceStatus{
