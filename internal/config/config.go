@@ -33,9 +33,14 @@ type telegramConfig struct {
 
 type TelegramMessages map[string]string
 
+type storageConfig struct {
+	DSN string `koanf:"dsn"`
+}
+
 type Config struct {
 	HTTP     http           `koanf:"http"`
 	Telegram telegramConfig `koanf:"telegram"`
+	Storage  storageConfig  `koanf:"storage"`
 }
 
 func Default() Config {
@@ -57,6 +62,9 @@ func Default() Config {
 			ChatID:   0,
 			Debug:    false,
 			Messages: TelegramMessages{},
+		},
+		Storage: storageConfig{
+			DSN: "file://" + os.Getenv("CONFIG_PATH"),
 		},
 	}
 }

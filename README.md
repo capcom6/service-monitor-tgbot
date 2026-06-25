@@ -59,6 +59,7 @@
 - [Usage](#usage)
   - [Messages Template System](#messages-template-system)
   - [Commands](#commands)
+  - [Storage Backends](#storage-backends)
 - [Examples](#examples)
   - [HTTP service monitoring example](#http-service-monitoring-example)
   - [TCP service monitoring example](#tcp-service-monitoring-example)
@@ -108,8 +109,10 @@ To run a bot, it is enough to have Docker or another environment for running con
 5. Make changes to the configuration file:
     - specify the bot token;
     - specify the channel/group ID, you can find out the ID, for example, by following the link like [https://api.telegram.org/bot<token>/getUpdates?allowed_updates=[]](https://api.telegram.org/bot<token>/getUpdates?allowed_updates=[]) after adding the bot to a channel/group and finding the value of `my_chat_member.chat.id`;
-    - list the services to monitor.
+    - list the services to monitor (or configure a [storage backend](#storage-backends)).
 6. Run the docker container: `docker run -d -v "$(pwd)/config.yml:/app/config.yml:ro" --name tgbot capcom6/service-monitor-tgbot:latest`
+
+> **Note:** By default, the service list is read from the same YAML file (file storage backend). To use Redis or another backend, see the [Storage Backends](#storage-backends) section and set the `storage.dsn` field or `STORAGE__DSN` environment variable.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -137,6 +140,21 @@ The bot supports the following commands:
 - `/status` - Get the current status of all monitored services
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Storage Backends
+
+The bot supports pluggable storage backends for loading the list of monitored services. The backend is selected via DSN in the `storage.dsn` config field (or `STORAGE__DSN` environment variable).
+
+| Scheme  | Backend             | Use Case                                      |
+| ------- | ------------------- | --------------------------------------------- |
+| `file`  | YAML file (default) | Simple setups, static configs                 |
+| `redis` | Redis key           | Dynamic service lists, distributed management |
+
+**File DSN format:** `file:///path/to/services.yml`
+
+**Redis DSN format:** `redis://[[user]:pass@]host:port[/db][?key=<key>&channel=<channel>]`
+
+Default key: `service-monitor:services`, default channel: `service-monitor:reload`.
 
 ## Examples
 

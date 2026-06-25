@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/capcom6/service-monitor-tgbot/internal/bot"
 	"github.com/capcom6/service-monitor-tgbot/internal/messages"
+	"github.com/capcom6/service-monitor-tgbot/internal/storage"
 	"github.com/capcom6/service-monitor-tgbot/pkg/telegram"
 	"github.com/go-core-fx/fiberfx"
 	"github.com/go-core-fx/fiberfx/openapi"
@@ -48,6 +49,11 @@ func Module() fx.Option {
 		fx.Provide(func(cfg Config) bot.Config {
 			return bot.Config{
 				ChatID: cfg.Telegram.ChatID,
+			}
+		}),
+		fx.Provide(func(cfg Config) storage.Config {
+			return storage.Config{
+				DSN: cfg.Storage.DSN,
 			}
 		}),
 	)

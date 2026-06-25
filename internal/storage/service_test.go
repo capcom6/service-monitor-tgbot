@@ -66,6 +66,15 @@ func (m *mockStorage) Load() ([]storage.MonitoredService, error) {
 	return m.Services, m.Error
 }
 
+func (m *mockStorage) Close() error {
+	return nil
+}
+
+//nolint:nilnil // mock doesn't use Watch
+func (m *mockStorage) Watch() (<-chan struct{}, error) {
+	return nil, nil
+}
+
 func TestStorageService_Load(t *testing.T) {
 	type fields struct {
 		storage storage.Storage

@@ -8,23 +8,23 @@ import (
 // MonitoredService is a service that needs to be monitored.
 type MonitoredService struct {
 	// ID is the unique identifier of the service.
-	ID string `yaml:"id" validate:"required"`
+	ID string `yaml:"id" json:"id" validate:"required"`
 	// Name is the human-readable name of the service.
-	Name string `yaml:"name" validate:"required"`
+	Name string `yaml:"name" json:"name" validate:"required"`
 	// InitialDelaySecondsRaw is the number of seconds to wait before starting the monitoring.
-	InitialDelaySecondsRaw int16 `yaml:"initialDelaySeconds"`
+	InitialDelaySecondsRaw int16 `yaml:"initialDelaySeconds" json:"initialDelaySeconds"`
 	// PeriodSeconds is the number of seconds between each monitoring attempt.
-	PeriodSeconds uint16 `yaml:"periodSeconds" validate:"gt=0"`
+	PeriodSeconds uint16 `yaml:"periodSeconds" json:"periodSeconds" validate:"gt=0"`
 	// TimeoutSeconds is the number of seconds to wait for a response from the service.
-	TimeoutSeconds uint16 `yaml:"timeoutSeconds" validate:"gt=0"`
+	TimeoutSeconds uint16 `yaml:"timeoutSeconds" json:"timeoutSeconds" validate:"gt=0"`
 	// SuccessThreshold is the number of successful monitoring attempts needed to consider the service as "online".
-	SuccessThreshold uint8 `yaml:"successThreshold" validate:"gt=0"`
+	SuccessThreshold uint8 `yaml:"successThreshold" json:"successThreshold" validate:"gt=0"`
 	// FailureThreshold is the number of failed monitoring attempts needed to consider the service as "offline".
-	FailureThreshold uint8 `yaml:"failureThreshold" validate:"gt=0"`
+	FailureThreshold uint8 `yaml:"failureThreshold" json:"failureThreshold" validate:"gt=0"`
 	// HTTPGet is the HTTP request to send to the service.
-	HTTPGet HTTPGet `yaml:"httpGet,omitempty" validate:"required_without=TCPSocket"`
+	HTTPGet HTTPGet `yaml:"httpGet,omitempty" json:"httpGet" validate:"required_without=TCPSocket"`
 	// TCPSocket is the TCP socket to connect to the service.
-	TCPSocket TCPSocket `yaml:"tcpSocket,omitempty" validate:"required_without=HTTPGet"`
+	TCPSocket TCPSocket `yaml:"tcpSocket,omitempty" json:"tcpSocket" validate:"required_without=HTTPGet"`
 }
 
 func (s *MonitoredService) InitialDelaySeconds() uint16 {
@@ -67,11 +67,11 @@ func (s *MonitoredService) Validate() error {
 }
 
 type HTTPGet struct {
-	TCPSocket `yaml:",inline"`
+	TCPSocket `yaml:",inline" json:",inline"`
 
-	Scheme      string      `yaml:"scheme"`
-	Path        string      `yaml:"path"`
-	HTTPHeaders HTTPHeaders `yaml:"httpHeaders"`
+	Scheme      string      `yaml:"scheme"      json:"scheme"`
+	Path        string      `yaml:"path"        json:"path"`
+	HTTPHeaders HTTPHeaders `yaml:"httpHeaders" json:"httpHeaders"`
 }
 
 func (s *HTTPGet) Validate() error {
@@ -99,13 +99,13 @@ func (s *HTTPGet) Validate() error {
 type HTTPHeaders []HTTPHeader
 
 type HTTPHeader struct {
-	Name  string `yaml:"name"  validate:"required"`
-	Value string `yaml:"value" validate:"required"`
+	Name  string `yaml:"name"  json:"name"  validate:"required"`
+	Value string `yaml:"value" json:"value" validate:"required"`
 }
 
 type TCPSocket struct {
-	Host string `yaml:"host" validate:"required,hostname"`
-	Port uint16 `yaml:"port"`
+	Host string `yaml:"host" json:"host" validate:"required,hostname"`
+	Port uint16 `yaml:"port" json:"port"`
 }
 
 func (s TCPSocket) IsEmpty() bool {
