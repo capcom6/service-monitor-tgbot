@@ -8,6 +8,7 @@ const (
 	TemplateOnline       string = "online"
 	TemplateOffline      string = "offline"
 	TemplateServicesList string = "services_list"
+	TemplateHeartbeat    string = "heartbeat"
 )
 
 type OnlineContext struct {
@@ -48,6 +49,13 @@ func NewServiceState(name, state string, err error, changedAt time.Time) Service
 }
 
 type ServicesListContext []ServiceState
+
+type HeartbeatContext struct {
+	TotalServices   int
+	OnlineServices  int
+	OfflineServices int
+	CheckedAt       time.Time
+}
 
 func FormatDurationSince(t time.Time) string {
 	if t.IsZero() {

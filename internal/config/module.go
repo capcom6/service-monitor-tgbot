@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/capcom6/service-monitor-tgbot/internal/bot"
+	"github.com/capcom6/service-monitor-tgbot/internal/heartbeat"
 	"github.com/capcom6/service-monitor-tgbot/internal/messages"
 	"github.com/capcom6/service-monitor-tgbot/internal/storage"
 	"github.com/capcom6/service-monitor-tgbot/pkg/telegram"
@@ -49,6 +50,13 @@ func Module() fx.Option {
 		fx.Provide(func(cfg Config) bot.Config {
 			return bot.Config{
 				ChatID: cfg.Telegram.ChatID,
+			}
+		}),
+		fx.Provide(func(cfg Config) heartbeat.Config {
+			return heartbeat.Config{
+				Enabled:  cfg.Heartbeat.Enabled,
+				Interval: cfg.Heartbeat.Interval,
+				ChatID:   cfg.Heartbeat.ChatID,
 			}
 		}),
 		fx.Provide(func(cfg Config) storage.Config {
