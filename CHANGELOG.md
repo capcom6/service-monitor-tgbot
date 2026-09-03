@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Periodic heartbeat messages sent on a configurable interval (`heartbeat.enabled`, `heartbeat.interval`, `heartbeat.chatId` config fields, `HEARTBEAT__*` environment variables)
+- `heartbeat` message template with `TotalServices`, `OnlineServices`, `OfflineServices`, and `CheckedAt` variables
+- Separate chat ID for heartbeat messages, falling back to the main Telegram chat ID when not set
+
+## [1.6.2] - 2026-09-03
+
+### Maintenance
+- Upgraded `gofiber/fiber/v2` from v2.52.14 to v2.52.15
+- Upgraded `redis/go-redis/v9` from v9.21.0 to v9.22.0
+- Upgraded `go-core-fx/fiberfx` from v0.5.1 to v0.6.0
+- Upgraded `golang.org/x/net` from v0.56.0 to v0.58.0
+
 ## [1.6.1] - 2026-07-08
 
 ### Maintenance
@@ -23,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Updated config to use `storage.dsn` field instead of hardcoded path
 - Added JSON struct tags to `MonitoredService` for Redis serialization
+- Updated config examples to use `storage.dsn` field
 
 ## [1.5.0] - 2026-06-12
 
@@ -145,9 +159,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Docker build parameters
 
-[Unreleased]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.6.1...HEAD
+[Unreleased]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.6.2...HEAD
+[1.6.2]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.6.1...v1.6.2
 [1.6.1]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.6.0...v1.6.1
-[1.6.0]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.5.0...v1.6.0
+[1.6.0]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.5.2...v1.6.0
+[1.5.2]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.5.1...v1.5.2
+[1.5.1]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/capcom6/tgbot-service-monitor/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/capcom6/tgbot-service-monitor/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/capcom6/tgbot-service-monitor/compare/v1.2.2...v1.3.0
