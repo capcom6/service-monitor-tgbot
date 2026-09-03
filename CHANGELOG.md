@@ -7,17 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-07-08
+
+### Maintenance
+- Upgraded `gofiber/fiber/v2` from v2.52.13 to v2.52.14
+
+## [1.6.0] - 2026-06-25
+
 ### Added
 - Pluggable storage backends with DSN-based selection (`file://`, `redis://`)
-- `Close()` method on the `Storage` interface for cleanup
 - `.env.example` with full environment variable reference
+- `Close()` method on the `Storage` interface for cleanup
 - Sentinel errors for DSN parsing and storage validation
 
 ### Changed
-- Replaced hardcoded `CONFIG_PATH` with factory pattern (`NewFromDSN`)
-- Refactored storage module to use FX lifecycle hooks for clean shutdown
+- Updated config to use `storage.dsn` field instead of hardcoded path
 - Added JSON struct tags to `MonitoredService` for Redis serialization
-- Updated config examples to use `storage.dsn` field
 
 ## [1.5.0] - 2026-06-12
 
@@ -140,7 +145,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Docker build parameters
 
-[Unreleased]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.6.0...v1.6.1
+[1.6.0]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.5.0...v1.6.0
 [1.5.0]: https://github.com/capcom6/tgbot-service-monitor/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/capcom6/tgbot-service-monitor/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/capcom6/tgbot-service-monitor/compare/v1.2.2...v1.3.0
