@@ -5,7 +5,7 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
+[![Apache-2.0 License][license-shield]][license-url]
 
 <!-- PROJECT LOGO -->
 <br />
@@ -34,16 +34,23 @@
 - [Usage](#usage)
   - [Messages Template System](#messages-template-system)
   - [Commands](#commands)
+  - [Heartbeat](#heartbeat)
   - [API Documentation](#api-documentation)
 - [Examples](#examples)
   - [HTTP service monitoring example](#http-service-monitoring-example)
   - [TCP service monitoring example](#tcp-service-monitoring-example)
 - [Configuration](#configuration)
   - [Environment Variables](#environment-variables)
+  - [YAML Config Structure](#yaml-config-structure)
+  - [Service Definition Fields](#service-definition-fields)
   - [Storage Backends](#storage-backends)
 - [Deployment](#deployment)
   - [Docker](#docker)
   - [GoReleaser](#goreleaser)
+- [Development](#development)
+  - [Prerequisites](#prerequisites-1)
+  - [Make Targets](#make-targets)
+  - [Quick Start](#quick-start)
 - [Roadmap](#roadmap)
 - [Contributing](#contributing)
 - [License](#license)
@@ -55,7 +62,7 @@
 
 Monitoring the availability of network services is an important task for any project. At the same time, it is not always necessary to deploy universal solutions like Prometheus — a simpler solution often suffices. It is for such cases that this bot was created.
 
-The bot monitors the availability of HTTP(S) and TCP services and notifies a Telegram channel or group about changes in their status.
+The bot monitors the availability of HTTP(S) and TCP services and notifies a Telegram channel or group about changes in their status. It also supports on-demand status queries via commands and periodic heartbeat summaries to confirm the bot is alive.
 
 **Key features:**
 
@@ -63,6 +70,7 @@ The bot monitors the availability of HTTP(S) and TCP services and notifies a Tel
 - Flexible notification message templates (Go template syntax)
 - Pluggable storage backends: YAML file or Redis
 - `/status` command for querying current service states
+- Periodic heartbeat messages
 - Telegram SOCKS5 proxy support
 - OpenAPI/Swagger documentation
 - Prometheus metrics endpoint
@@ -78,6 +86,7 @@ The bot monitors the availability of HTTP(S) and TCP services and notifies a Tel
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- GETTING STARTED -->
 ## Getting Started
 
 Follow the instructions below to run the bot.
@@ -105,41 +114,79 @@ Choose one of the following:
 docker run -d \
   -v "$(pwd)/config.yml:/app/config.yml:ro" \
   --name tgbot \
-  capcom6/service-monitor-tgbot:latest
+  ghcr.io/capcom6/service-monitor-tgbot:latest
 ```
 
 Alternatively, copy [`.env.example`](.env.example) to `.env` and set environment variables there.
 
+**From source:**
+
+```bash
+make deps
+make build
+./bin/service-monitor-tgbot
+```
+
+> **Note:** By default, the service list is read from the same YAML file (file storage backend). To use Redis or another backend, see the [Storage Backends](#storage-backends) section and set the `storage.dsn` field or `STORAGE__DSN` environment variable.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- USAGE -->
 ## Usage
 
 ### Messages Template System
 
-The bot uses a flexible template system for customizing notification messages. Templates support Go template syntax and can be customized in the configuration file under the `messages` section.
+The bot uses a flexible template system for customizing notification messages. Templates support Go `text/template` syntax and a custom `escape` function for Telegram MarkdownV2 escaping. Templates can be customized in the configuration file under the `telegram.messages` key or via the `TELEGRAM__MESSAGES` environment variable (JSON object).
 
-| Template        | Variables                                                                                                                                                                                                                                 | Description                           |
-| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| `online`        | `Name` - name of the service<br>`ChangedAt` - when the service entered this state<br>`Duration` - how long the service has been in this state                                                                                             | message when a service goes "online"  |
-| `offline`       | `Name` - name of the service<br>`Error` - error message<br>`ChangedAt` - when the service entered this state<br>`Duration` - how long the service has been in this state                                                                  | message when a service goes "offline" |
-| `services_list` | `.` - list of all services:<br>`Name` - name of the service<br>`State` - state of the service<br>`Error` - error message<br>`ChangedAt` - when the service entered this state<br>`Duration` - how long the service has been in this state | message with a list of all services   |
+| Template        | Variables                                                                                                                                                                                                                                      | Description                           |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `online`        | `Name` - name of the service<br>`ChangedAt` - when the service entered this state<br>`Duration` - how long the service has been in this state                                                                                                  | message when a service goes "online"  |
+| `offline`       | `Name` - name of the service<br>`Error` - error message<br>`ChangedAt` - when the service entered this state<br>`Duration` - how long the service has been in this state                                                                       | message when a service goes "offline" |
+| `services_list` | list of all services, each with:<br>`Name` - name of the service<br>`State` - state of the service<br>`Error` - error message<br>`ChangedAt` - when the service entered this state<br>`Duration` - how long the service has been in this state | message with a list of all services   |
+| `heartbeat`     | `TotalServices` - total number of services<br>`OnlineServices` - number of online services<br>`OfflineServices` - number of offline services<br>`CheckedAt` - time of the heartbeat check                                                      | periodic heartbeat status summary     |
 
 ### Commands
 
 - `/status` — Get the current status of all monitored services
+
+### Heartbeat
+
+The heartbeat feature sends periodic status summaries to help distinguish between "everything is fine" and "the bot has crashed."
+
+When enabled, the bot sends a summary message at a configurable interval regardless of service states. The summary shows how many monitored services are online and offline. By default, an offline count is appended when at least one service is offline.
+
+Configure via environment variables or YAML:
+
+```bash
+HEARTBEAT__ENABLED=true
+HEARTBEAT__INTERVAL=1h
+HEARTBEAT__CHATID=-1001234567890  # optional, defaults to TELEGRAM__CHATID
+```
+
+Or in YAML:
+
+```yaml
+heartbeat:
+  enabled: true
+  interval: 1h
+  chatId: -1001234567890  # optional, defaults to telegram.chatId
+```
+
+Default heartbeat message: `💓 Heartbeat: 5/5 services online` (with the `(1 offline)` suffix when any service is offline). The message text can be customized via the `heartbeat` template.
 
 ### API Documentation
 
 When OpenAPI is enabled (default), Swagger documentation is available at:
 
 ```
-http://localhost:3000/api/v1/
+http://localhost:3000/api/v1/docs
 ```
 
-Disable it with `HTTP__OPENAPI__ENABLED=false` or the `openapi.enabled: false` config field.
+Disable it with `HTTP__OPENAPI__ENABLED=false` or the `http.openapi.enabled: false` config field.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- EXAMPLES -->
 ## Examples
 
 ### HTTP service monitoring example
@@ -183,30 +230,74 @@ services:
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- CONFIGURATION -->
 ## Configuration
 
-Configuration can be provided via a YAML file, environment variables, or both. Environment variables override YAML values.
+Configuration is loaded in order: defaults < YAML file < `.env` file < environment variables. Set `CONFIG_PATH` to point to your YAML config file.
 
 ### Environment Variables
 
-| Variable                     | Description                                                | Default               | Example                             |
-| ---------------------------- | ---------------------------------------------------------- | --------------------- | ----------------------------------- |
-| `CONFIG_PATH`                | Path to main YAML configuration file                       | —                     | `./configs/config.yml`              |
-| `DEBUG`                      | Enable development logging (human-readable console output) | `false`               | `1`                                 |
-| `HTTP__ADDRESS`              | HTTP server bind address (health/metrics)                  | `127.0.0.1:3000`      | `0.0.0.0:3000`                      |
-| `HTTP__PROXY_HEADER`         | Trusted proxy header for real client IP                    | `X-Forwarded-For`     | `X-Real-IP`                         |
-| `HTTP__PROXIES`              | Trusted proxy IPs/CIDRs (comma-separated)                  | (empty)               | `10.0.0.0/8,192.168.1.0/24`         |
-| `HTTP__OPENAPI__ENABLED`     | Enable Swagger/OpenAPI docs endpoint                       | `true`                | `false`                             |
-| `HTTP__OPENAPI__PUBLIC_HOST` | Public hostname in OpenAPI spec                            | (empty)               | `api.example.com`                   |
-| `HTTP__OPENAPI__PUBLIC_PATH` | Path prefix for OpenAPI docs                               | (empty)               | `/docs`                             |
-| `TELEGRAM__TOKEN`            | Telegram Bot API token (required)                          | —                     | `123456:ABC-DEF...`                 |
-| `TELEGRAM__CHATID`           | Target chat/group/channel ID (required)                    | —                     | `-1001234567890`                    |
-| `TELEGRAM__PROXY_URL`        | SOCKS5 proxy for Telegram API                              | (empty)               | `socks5://user:pass@127.0.0.1:1080` |
-| `TELEGRAM__TIMEOUT`          | Telegram API client timeout                                | `1m`                  | `30s`                               |
-| `TELEGRAM__MESSAGES`         | Custom message templates (JSON object)                     | (built-in defaults)   | `{"online":"✅ {{.Name}}"}`          |
-| `STORAGE__DSN`               | Storage backend DSN                                        | `file://$CONFIG_PATH` | `redis://localhost:6379/0`          |
+| Variable                     | Description                                                | Default                   | Example                             |
+| ---------------------------- | ---------------------------------------------------------- | ------------------------- | ----------------------------------- |
+| `CONFIG_PATH`                | Path to main YAML configuration file                       | —                         | `./configs/config.yml`              |
+| `DEBUG`                      | Enable development logging (human-readable console output) | `false`                   | `1`                                 |
+| `HTTP__ADDRESS`              | HTTP server bind address (health/metrics)                  | `127.0.0.1:3000`          | `0.0.0.0:3000`                      |
+| `HTTP__PROXY_HEADER`         | Trusted proxy header for real client IP                    | `X-Forwarded-For`         | `X-Real-IP`                         |
+| `HTTP__PROXIES`              | Trusted proxy IPs/CIDRs (comma-separated)                  | (empty)                   | `10.0.0.0/8,192.168.1.0/24`         |
+| `HTTP__OPENAPI__ENABLED`     | Enable Swagger/OpenAPI docs endpoint                       | `true`                    | `false`                             |
+| `HTTP__OPENAPI__PUBLIC_HOST` | Public hostname in OpenAPI spec                            | (empty)                   | `api.example.com`                   |
+| `HTTP__OPENAPI__PUBLIC_PATH` | Path prefix for OpenAPI docs                               | (empty)                   | `/docs`                             |
+| `TELEGRAM__TOKEN`            | Telegram Bot API token (required)                          | —                         | `123456:ABC-DEF...`                 |
+| `TELEGRAM__CHATID`           | Target chat/group/channel ID (required)                    | —                         | `-1001234567890`                    |
+| `TELEGRAM__PROXY_URL`        | SOCKS5 proxy for Telegram API                              | (empty)                   | `socks5://user:pass@127.0.0.1:1080` |
+| `TELEGRAM__TIMEOUT`          | Telegram API client timeout                                | `1m`                      | `30s`                               |
+| `TELEGRAM__MESSAGES`         | Custom message templates (JSON object)                     | (built-in defaults)       | `{"online":"✅ {{.Name}}"}`          |
+| `HEARTBEAT__ENABLED`         | Enable periodic heartbeat messages                         | `false`                   | `true`                              |
+| `HEARTBEAT__INTERVAL`        | Heartbeat send interval                                    | `6h`                      | `1h`                                |
+| `HEARTBEAT__CHATID`          | Target chat for heartbeat messages                         | (uses `TELEGRAM__CHATID`) | `-1001234567890`                    |
+| `STORAGE__DSN`               | Storage backend DSN                                        | `file://$CONFIG_PATH`     | `redis://localhost:6379/0`          |
 
-> **Note:** Environment variable names use `__` (double underscore) as the separator for nested config keys (e.g., `TELEGRAM__TOKEN` maps to `telegram.token`).
+> **Note:** Environment variable names use `__` (double underscore) as the separator for nested config keys (e.g., `TELEGRAM__TOKEN` maps to `telegram.token`). A `.env` file in the working directory is loaded automatically.
+
+### YAML Config Structure
+
+```yaml
+telegram:
+  token: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+  chatId: -1234567890123
+  proxyUrl: socks5://user:pass@127.0.0.1:1080  # optional
+  messages: {}                                 # optional, overrides built-in templates
+
+heartbeat:
+  enabled: true   # optional, enables periodic heartbeat messages
+  interval: 1h    # optional, default: 6h
+  chatId: 0       # optional, 0 = use telegram.chatId
+
+storage:
+  dsn: file://./configs/services.yml  # optional, default: file://$CONFIG_PATH
+
+services:  # optional inline list of services, see Examples and Service Definition Fields
+```
+
+### Service Definition Fields
+
+| Field                 | Type   | Default       | Description                                                  |
+| --------------------- | ------ | ------------- | ------------------------------------------------------------ |
+| `name`                | string | (required)    | Human-readable service name                                  |
+| `initialDelaySeconds` | int16  | `0`           | Delay before first check; negative = random 0..periodSeconds |
+| `periodSeconds`       | uint16 | `10`          | Seconds between probes                                       |
+| `timeoutSeconds`      | uint16 | `1`           | Probe timeout                                                |
+| `successThreshold`    | uint8  | `1`           | Consecutive successes to mark "online"                       |
+| `failureThreshold`    | uint8  | `3`           | Consecutive failures to mark "offline"                       |
+| `httpGet`             | object |               | HTTP probe (mutually exclusive with `tcpSocket`)             |
+| `httpGet.scheme`      | string | `http`        | `http` or `https`                                            |
+| `httpGet.host`        | string | (required)    | Hostname                                                     |
+| `httpGet.path`        | string | `/`           | URL path                                                     |
+| `httpGet.port`        | uint16 | auto (80/443) | Port (defaults based on scheme)                              |
+| `httpGet.httpHeaders` | list   |               | Custom HTTP headers                                          |
+| `tcpSocket`           | object |               | TCP probe (mutually exclusive with `httpGet`)                |
+| `tcpSocket.host`      | string | (required)    | Hostname                                                     |
+| `tcpSocket.port`      | uint16 | (required)    | Port                                                         |
 
 ### Storage Backends
 
@@ -225,6 +316,7 @@ Default key: `service-monitor:services`, default channel: `service-monitor:reloa
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- DEPLOYMENT -->
 ## Deployment
 
 ### Docker
@@ -248,17 +340,64 @@ make release
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- DEVELOPMENT -->
+## Development
+
+### Prerequisites
+
+- Go 1.26+
+- [golangci-lint](https://golangci-lint.run/) v2
+- [Air](https://github.com/air-verse/air) (for hot-reload, optional)
+- [GoReleaser](https://goreleaser.com/) (for release builds, optional)
+
+### Make Targets
+
+| Target              | Description                                                               |
+| ------------------- | ------------------------------------------------------------------------- |
+| `make all`          | Format + lint + test coverage                                             |
+| `make build`        | Build binary to `bin/`                                                    |
+| `make test`         | Run tests with race detection and coverage                                |
+| `make coverage`     | Generate coverage report (`coverage.out` + `coverage.html`)               |
+| `make lint`         | Run golangci-lint                                                         |
+| `make fmt`          | Format code                                                               |
+| `make air`          | Development server with hot-reload                                        |
+| `make release`      | GoReleaser snapshot build                                                 |
+| `make docker-build` | Build Docker image                                                        |
+| `make docker-up`    | Start services via Docker Compose (requires a local `docker-compose.yml`) |
+| `make docker-down`  | Stop Docker Compose services                                              |
+| `make swagger`      | Regenerate Swagger docs                                                   |
+| `make clean`        | Clean build artifacts                                                     |
+| `make help`         | Show available targets                                                    |
+
+### Quick Start
+
+```bash
+make deps        # install Go dependencies
+make air         # start with hot-reload (requires Air)
+```
+
+Or build and run directly:
+
+```bash
+make build
+CONFIG_PATH=configs/config.yml DEBUG=1 ./bin/service-monitor-tgbot
+```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+<!-- ROADMAP -->
 ## Roadmap
 
 - [x] Add Changelog
 - [x] Add the ability to change the text of messages
 - [x] Pluggable storage backends (file, Redis)
 - [x] Proxy support for Telegram client
+- [x] Request current state of services (`/status` command)
+- [x] Periodic heartbeat messages
 - [ ] Send notifications to multiple channels/groups
 - [ ] Display event time in notifications
 - [ ] Online/offline time count
 - [ ] Active bot mode
-     - [x] Request current state of services
      - [ ] SLA report
      - [ ] The event log
 - [ ] Separation of bot and monitoring service
@@ -270,6 +409,7 @@ See the [open issues](https://github.com/capcom6/service-monitor-tgbot/issues) f
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- CONTRIBUTING -->
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -285,12 +425,14 @@ Don't forget to give the project a star! Thanks again!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- LICENSE -->
 ## License
 
 Distributed under the Apache-2.0 license. See `LICENSE` for more information.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- CONTACT -->
 ## Contact
 
 **API Support:** i@capcom.me
@@ -299,6 +441,7 @@ Project Link: [https://github.com/capcom6/service-monitor-tgbot](https://github.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+<!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
 * [Go Fiber](https://gofiber.io/) — Express-inspired web framework

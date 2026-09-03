@@ -52,6 +52,10 @@ func (s *Service) ServicesList(data ServicesListContext) (string, error) {
 	return s.render(TemplateServicesList, data)
 }
 
+func (s *Service) Heartbeat(data HeartbeatContext) (string, error) {
+	return s.render(TemplateHeartbeat, data)
+}
+
 func (s *Service) render(name string, data any) (string, error) {
 	res, err := s.templatesSvc.Render(name, data)
 	if err != nil {

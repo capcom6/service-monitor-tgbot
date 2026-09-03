@@ -5,6 +5,7 @@ import (
 
 	"github.com/capcom6/service-monitor-tgbot/internal/bot"
 	"github.com/capcom6/service-monitor-tgbot/internal/config"
+	"github.com/capcom6/service-monitor-tgbot/internal/heartbeat"
 	"github.com/capcom6/service-monitor-tgbot/internal/messages"
 	"github.com/capcom6/service-monitor-tgbot/internal/monitor"
 	"github.com/capcom6/service-monitor-tgbot/internal/server"
@@ -46,6 +47,7 @@ func Run(version healthfx.Version) {
 		// bot.Module(),
 		telegram.Module(),
 		storage.Module(),
+		heartbeat.Module(),
 		bot.Module(),
 		//
 		// BUSINESS MODULES
