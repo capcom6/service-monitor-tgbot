@@ -9,6 +9,7 @@ import (
 	"github.com/go-core-fx/fiberfx"
 	"github.com/go-core-fx/fiberfx/openapi"
 	"github.com/go-core-fx/logger"
+	"github.com/samber/lo"
 	"go.uber.org/fx"
 )
 
@@ -56,7 +57,7 @@ func Module() fx.Option {
 			return heartbeat.Config{
 				Enabled:  cfg.Heartbeat.Enabled,
 				Interval: cfg.Heartbeat.Interval,
-				ChatID:   cfg.Heartbeat.ChatID,
+				ChatID:   lo.CoalesceOrEmpty(cfg.Heartbeat.ChatID, cfg.Telegram.ChatID),
 			}
 		}),
 		fx.Provide(func(cfg Config) storage.Config {
