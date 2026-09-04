@@ -8,6 +8,8 @@ import (
 	"github.com/go-core-fx/config"
 )
 
+const defaultHeartbeatInterval = 6 * time.Hour
+
 type http struct {
 	Address     string   `koanf:"address"`
 	ProxyHeader string   `koanf:"proxy_header"`
@@ -37,10 +39,17 @@ type storageConfig struct {
 	DSN string `koanf:"dsn"`
 }
 
+type heartbeatConfig struct {
+	Enabled  bool          `koanf:"enabled"`
+	Interval time.Duration `koanf:"interval"`
+	ChatID   int64         `koanf:"chatId"`
+}
+
 type Config struct {
-	HTTP     http           `koanf:"http"`
-	Telegram telegramConfig `koanf:"telegram"`
-	Storage  storageConfig  `koanf:"storage"`
+	HTTP      http            `koanf:"http"`
+	Telegram  telegramConfig  `koanf:"telegram"`
+	Storage   storageConfig   `koanf:"storage"`
+	Heartbeat heartbeatConfig `koanf:"heartbeat"`
 }
 
 func Default() Config {
@@ -65,6 +74,11 @@ func Default() Config {
 		},
 		Storage: storageConfig{
 			DSN: "file://" + os.Getenv("CONFIG_PATH"),
+		},
+		Heartbeat: heartbeatConfig{
+			Enabled:  false,
+			Interval: defaultHeartbeatInterval,
+			ChatID:   0,
 		},
 	}
 }

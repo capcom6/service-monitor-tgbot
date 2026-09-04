@@ -19,6 +19,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added JSON struct tags to `MonitoredService` for Redis serialization
 - Updated config examples to use `storage.dsn` field
 
+## [1.6.1] - 2026-09-04
+
+### Changed
+- Updated `gofiber/fiber` dependency from v2.52.13 to v2.52.14
+
 ## [1.5.0] - 2026-06-12
 
 ### Added
@@ -140,7 +145,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Docker build parameters
 
-[Unreleased]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.5.0...HEAD
+[Unreleased]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.6.1...HEAD
+[1.6.1]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.6.0...v1.6.1
+[1.6.0]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.5.2...v1.6.0
+[1.5.2]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.5.1...v1.5.2
+[1.5.1]: https://github.com/capcom6/service-monitor-tgbot/compare/v1.5.0...v1.5.1
 [1.5.0]: https://github.com/capcom6/tgbot-service-monitor/compare/v1.4.0...v1.5.0
 [1.4.0]: https://github.com/capcom6/tgbot-service-monitor/compare/v1.3.0...v1.4.0
 [1.3.0]: https://github.com/capcom6/tgbot-service-monitor/compare/v1.2.2...v1.3.0
