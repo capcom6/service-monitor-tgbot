@@ -43,6 +43,11 @@ func (s *Service) Run(ctx context.Context) error {
 		return nil
 	}
 
+	if s.config.Interval <= 0 {
+		s.logger.Info("heartbeat interval is not positive")
+		return nil
+	}
+
 	s.logger.Info("heartbeat started",
 		zap.Duration("interval", s.config.Interval))
 
