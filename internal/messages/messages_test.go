@@ -37,7 +37,7 @@ func TestHeartbeat_SomeOffline(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	expected := "💓 Heartbeat: 3/5 services online (2 offline)"
+	expected := "💓 Heartbeat: 3/5 services online \\(2 offline\\)"
 	if result != expected {
 		t.Errorf("got %q, want %q", result, expected)
 	}
@@ -55,7 +55,7 @@ func TestHeartbeat_AllOffline(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	expected := "💓 Heartbeat: 0/3 services online (3 offline)"
+	expected := "💓 Heartbeat: 0/3 services online \\(3 offline\\)"
 	if result != expected {
 		t.Errorf("got %q, want %q", result, expected)
 	}
