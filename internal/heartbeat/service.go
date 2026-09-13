@@ -70,9 +70,10 @@ func (s *Service) sendHeartbeat() {
 
 	var online, offline int
 	for _, st := range statuses {
-		if st.State == monitor.ServiceStateOnline {
+		switch st.State {
+		case monitor.ServiceStateOnline:
 			online++
-		} else {
+		case monitor.ServiceStateOffline:
 			offline++
 		}
 	}
