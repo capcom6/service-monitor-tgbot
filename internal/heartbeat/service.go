@@ -75,6 +75,7 @@ func (s *Service) sendHeartbeat() {
 			online++
 		case monitor.ServiceStateOffline:
 			offline++
+		case monitor.ServiceStateUnknown:
 		}
 	}
 
