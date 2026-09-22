@@ -99,7 +99,7 @@ func (b *Bot) EscapeText(text string) string {
 
 func (b *Bot) Listen(ctx context.Context) error {
 	u := tg.NewUpdate(0)
-	u.Timeout = 60
+	u.Timeout = b.cfg.LongPollTimeout()
 	u.AllowedUpdates = []string{"message", "callback_query"}
 
 	updates := b.api.GetUpdatesChan(u)
