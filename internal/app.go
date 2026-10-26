@@ -39,7 +39,7 @@ func Run(version healthfx.Version) {
 		// openrouterfx.Module(),
 		// redisfx.Module(),
 		// sqlxfx.Module(),
-		telegofx.Module(telegofx.WithRouter()),
+		telegofx.Module(telegofx.WithRouter(), telegofx.WithHealth()),
 		// validatorfx.Module(),
 		// watermillfx.Module(),
 		//
