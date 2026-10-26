@@ -36,10 +36,6 @@ func NewService(cfg Config, logger *zap.Logger) *Service {
 	return s
 }
 
-func (s *Service) SetEscapeFn(fn func(string) string) {
-	s.templatesSvc.SetEscapeFn(fn)
-}
-
 func (s *Service) Online(data OnlineContext) (string, error) {
 	return s.render(TemplateOnline, data)
 }

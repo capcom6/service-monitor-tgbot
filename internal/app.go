@@ -8,12 +8,14 @@ import (
 	"github.com/capcom6/service-monitor-tgbot/internal/heartbeat"
 	"github.com/capcom6/service-monitor-tgbot/internal/messages"
 	"github.com/capcom6/service-monitor-tgbot/internal/monitor"
+	"github.com/capcom6/service-monitor-tgbot/internal/sender"
 	"github.com/capcom6/service-monitor-tgbot/internal/server"
 	"github.com/capcom6/service-monitor-tgbot/internal/storage"
-	"github.com/capcom6/service-monitor-tgbot/pkg/telegram"
 	"github.com/go-core-fx/fiberfx"
 	"github.com/go-core-fx/healthfx"
+	"github.com/go-core-fx/httpfx"
 	"github.com/go-core-fx/logger"
+	"github.com/go-core-fx/telegofx"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
 )
@@ -33,10 +35,11 @@ func Run(version healthfx.Version) {
 		// goosefx.Module(),
 		// gormfx.Module(),
 		healthfx.Module(),
+		httpfx.Module(),
 		// openrouterfx.Module(),
 		// redisfx.Module(),
 		// sqlxfx.Module(),
-		// telegofx.Module(true),
+		telegofx.Module(telegofx.WithRouter()),
 		// validatorfx.Module(),
 		// watermillfx.Module(),
 		//
@@ -45,7 +48,7 @@ func Run(version healthfx.Version) {
 		// db.Module(),
 		server.Module(),
 		// bot.Module(),
-		telegram.Module(),
+		sender.Module(),
 		storage.Module(),
 		heartbeat.Module(),
 		bot.Module(),

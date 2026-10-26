@@ -8,15 +8,16 @@ require (
 	github.com/go-core-fx/fiberfx v0.6.0
 	github.com/go-core-fx/fxutil v0.0.2
 	github.com/go-core-fx/healthfx v0.1.0
+	github.com/go-core-fx/httpfx v0.2.0
 	github.com/go-core-fx/logger v0.0.1
-	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
+	github.com/go-core-fx/telegofx v0.6.1-0.20261024115656-0a5b05201131
 	github.com/gofiber/fiber/v2 v2.52.15
+	github.com/mymmrac/telego v1.12.1
 	github.com/redis/go-redis/v9 v9.22.0
 	github.com/samber/lo v1.53.0
 	github.com/swaggo/swag v1.16.6
 	go.uber.org/fx v1.24.0
 	go.uber.org/zap v1.28.0
-	golang.org/x/net v0.58.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -33,8 +34,6 @@ require (
 	github.com/cloudwego/base64x v0.1.7 // indirect
 	github.com/fsnotify/fsnotify v1.10.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.15 // indirect
-	github.com/go-core-fx/httpfx v0.2.0 // indirect
-	github.com/go-core-fx/telegofx v0.6.1-0.20261024115656-0a5b05201131 // indirect
 	github.com/go-openapi/jsonpointer v1.0.0 // indirect
 	github.com/go-openapi/jsonreference v1.0.1 // indirect
 	github.com/go-openapi/spec v0.22.11 // indirect
@@ -69,7 +68,6 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
-	github.com/mymmrac/telego v1.12.1 // indirect
 	github.com/prometheus/client_golang v1.24.1 // indirect
 	github.com/prometheus/client_model v0.6.3 // indirect
 	github.com/prometheus/common v0.71.0 // indirect
@@ -89,6 +87,7 @@ require (
 	golang.org/x/arch v0.30.0 // indirect
 	golang.org/x/crypto v0.56.0 // indirect
 	golang.org/x/mod v0.40.0 // indirect
+	golang.org/x/net v0.58.0 // indirect
 	golang.org/x/sync v0.22.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect

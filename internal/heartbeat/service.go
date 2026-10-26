@@ -6,7 +6,7 @@ import (
 
 	"github.com/capcom6/service-monitor-tgbot/internal/messages"
 	"github.com/capcom6/service-monitor-tgbot/internal/monitor"
-	"github.com/capcom6/service-monitor-tgbot/pkg/telegram"
+	"github.com/capcom6/service-monitor-tgbot/internal/sender"
 	"go.uber.org/zap"
 )
 
@@ -15,7 +15,7 @@ type Service struct {
 	config      Config
 	monitorSvc  *monitor.Service
 	messagesSvc *messages.Service
-	bot         *telegram.Bot
+	sender      *sender.Service
 	logger      *zap.Logger
 }
 
@@ -24,14 +24,14 @@ func New(
 	config Config,
 	monitorSvc *monitor.Service,
 	messagesSvc *messages.Service,
-	bot *telegram.Bot,
+	sender *sender.Service,
 	logger *zap.Logger,
 ) *Service {
 	return &Service{
 		config:      config,
 		monitorSvc:  monitorSvc,
 		messagesSvc: messagesSvc,
-		bot:         bot,
+		sender:      sender,
 		logger:      logger,
 	}
 }
@@ -57,7 +57,7 @@ func (s *Service) Run(ctx context.Context) error {
 	for {
 		select {
 		case <-ticker.C:
-			s.sendHeartbeat()
+			s.sendHeartbeat(ctx)
 		case <-ctx.Done():
 			s.logger.Info("heartbeat stopped")
 			return nil
@@ -65,7 +65,7 @@ func (s *Service) Run(ctx context.Context) error {
 	}
 }
 
-func (s *Service) sendHeartbeat() {
+func (s *Service) sendHeartbeat(ctx context.Context) {
 	statuses := s.monitorSvc.GetCurrentStatuses()
 
 	var online, offline int
@@ -91,7 +91,7 @@ func (s *Service) sendHeartbeat() {
 	}
 
 	chatID := s.config.ChatID
-	if _, sendErr := s.bot.SendMessage(chatID, msg); sendErr != nil {
+	if sendErr := s.sender.Send(ctx, chatID, msg); sendErr != nil {
 		s.logger.Error("failed to send heartbeat", zap.Error(sendErr))
 	}
 }

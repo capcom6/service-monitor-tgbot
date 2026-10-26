@@ -4,11 +4,13 @@ import (
 	"github.com/capcom6/service-monitor-tgbot/internal/bot"
 	"github.com/capcom6/service-monitor-tgbot/internal/heartbeat"
 	"github.com/capcom6/service-monitor-tgbot/internal/messages"
+	"github.com/capcom6/service-monitor-tgbot/internal/sender"
 	"github.com/capcom6/service-monitor-tgbot/internal/storage"
-	"github.com/capcom6/service-monitor-tgbot/pkg/telegram"
 	"github.com/go-core-fx/fiberfx"
 	"github.com/go-core-fx/fiberfx/openapi"
+	"github.com/go-core-fx/httpfx"
 	"github.com/go-core-fx/logger"
+	"github.com/go-core-fx/telegofx"
 	"github.com/samber/lo"
 	"go.uber.org/fx"
 )
@@ -34,18 +36,36 @@ func Module() fx.Option {
 				}
 			},
 		),
-		fx.Provide(func(cfg Config) telegram.Config {
-			return telegram.Config{
-				Token:     cfg.Telegram.Token,
-				ParseMode: "MarkdownV2",
-				ProxyURL:  cfg.Telegram.ProxyURL,
-				Timeout:   cfg.Telegram.Timeout,
+		fx.Provide(func(cfg Config) telegofx.Config {
+			return telegofx.Config{
+				Token: cfg.Telegram.Token,
+				Mode:  telegofx.ModePolling,
+			}
+		}),
+		// httpfx owns the transport: SOCKS5 routing from ProxyURL and the
+		// Timeout that bounds dialing the proxy, TLS and reading the response
+		// in one deadline. Every other field stays at its inherit-the-defaults
+		// zero (pools, idle timeout, root CAs). telegofx receives the
+		// configured *http.Client from the graph (httpfx.Module).
+		fx.Provide(func(cfg Config) httpfx.Config {
+			return httpfx.Config{
+				ProxyURL:            cfg.Telegram.ProxyURL,
+				Timeout:             cfg.Telegram.Timeout,
+				Bypass:              "",
+				MaxIdleConns:        0,
+				MaxIdleConnsPerHost: 0,
+				IdleConnTimeout:     0,
+				TLS: httpfx.TLSConfig{
+					RootCAFile:          "",
+					RootCAPEM:           "",
+					RootCAReplaceSystem: false,
+				},
 			}
 		}),
 		fx.Provide(func(cfg Config) messages.Config {
 			return messages.Config{
 				Templates: cfg.Telegram.Messages,
-				EscapeFn:  nil,
+				EscapeFn:  sender.EscapeText,
 			}
 		}),
 		fx.Provide(func(cfg Config) bot.Config {
