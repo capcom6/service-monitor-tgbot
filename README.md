@@ -350,6 +350,8 @@ docker run -d \
   ghcr.io/capcom6/service-monitor-tgbot:latest
 ```
 
+The image ships a `HEALTHCHECK` against `/health/live` on port `3000` (it must match `HTTP__ADDRESS`), so an orchestrator marks the container unhealthy and restarts it once the Telegram polling loop has been silent for 3 × `TELEGRAM__TIMEOUT` — see [Health Endpoints](#health-endpoints).
+
 ### GoReleaser
 
 The project uses GoReleaser for building and publishing releases. Binaries are built for Linux, macOS, and Windows. Docker images are published for `linux/amd64` and `linux/arm64`.

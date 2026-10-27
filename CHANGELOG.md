@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `heartbeat` message template with `TotalServices`, `OnlineServices`, `OfflineServices`, and `CheckedAt` variables
 - Separate chat ID for heartbeat messages, falling back to the main Telegram chat ID when not set
 - `telegram:api` liveness check — `/health` and `/health/live` answer HTTP 503 once no Telegram API call has completed for 3 × `telegram.timeout`, catching a polling loop that is wedged without errors (requests that fail fast keep it green; see Health Endpoints in the README)
+- Docker image `HEALTHCHECK` on `/health/live` — the published image reports unhealthy when that check fails, so an orchestrator restarts a wedged bot instead of leaving it silent (port 3000, must match `HTTP__ADDRESS`)
 
 ### Changed
 - Telegram long polling now waits a fixed 8 seconds per `getUpdates` (was `telegram.timeout` minus 5 seconds, capped at 55 s) — `TELEGRAM__TIMEOUT` must stay above 8 s (the default `1m` is fine) and now only bounds the HTTP client
