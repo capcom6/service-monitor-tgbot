@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Periodic heartbeat messages sent on a configurable interval (`heartbeat.enabled`, `heartbeat.interval`, `heartbeat.chatId` config fields, `HEARTBEAT__*` environment variables)
 - `heartbeat` message template with `TotalServices`, `OnlineServices`, `OfflineServices`, and `CheckedAt` variables
 - Separate chat ID for heartbeat messages, falling back to the main Telegram chat ID when not set
+- `telegram:api` liveness check — `/health` and `/health/live` answer HTTP 503 once no Telegram API call has completed for 3 × `telegram.timeout`, catching a polling loop that is wedged without errors (requests that fail fast keep it green; see Health Endpoints in the README)
+
+### Changed
+- Telegram long polling now waits a fixed 8 seconds per `getUpdates` (was `telegram.timeout` minus 5 seconds, capped at 55 s) — `TELEGRAM__TIMEOUT` must stay above 8 s (the default `1m` is fine) and now only bounds the HTTP client
+- Bot tokens are checked for format at startup instead of being confirmed against the API — a well-formed but wrong token starts the app and shows up on the first API call in the logs
+- The Telegram HTTP client is built by `go-core-fx/httpfx` — `TELEGRAM__PROXY_URL` is validated at startup (`socks5://`/`socks5h://` only; scheme matching is now case-sensitive) and `HTTP_PROXY`/`HTTPS_PROXY` are never used
+- A failing polling loop now shuts down with exit code 0 instead of 1 (relevant only to `on-failure` restart policies)
+- Unknown commands are no longer logged — unmatched updates are dropped
+
+### Fixed
+- Corrected the documented YAML proxy key — `telegram.proxyUrl` was never read, the key is `telegram.proxy_url`; `config.example.yml`, the README and `.env.example` now use it and also note that a `chatId` set in the YAML wins over `TELEGRAM__CHATID`
 
 ## [1.6.2] - 2026-09-03
 
