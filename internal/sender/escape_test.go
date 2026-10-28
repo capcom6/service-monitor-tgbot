@@ -20,7 +20,7 @@ func TestEscapeText(t *testing.T) {
 		{name: "tilde is escaped", in: "a~b", want: `a\~b`},
 		{name: "backtick is escaped", in: "a`b", want: "a\\`b"},
 		{name: "greater-than is escaped", in: "a>b", want: `a\>b`},
-		{name: "backslash is untouched", in: `a\b`, want: `a\b`},
+		{name: "backslash is escaped", in: `a\b`, want: `a\\b`},
 	}
 
 	for _, tt := range tests {
