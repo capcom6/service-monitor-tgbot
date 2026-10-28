@@ -28,6 +28,7 @@ ENTRYPOINT ["/app/server"]
 # together with the address; shell parameter expansion is deliberately avoided
 # here because the Dockerfile parser rejects it. The probe runs inside the
 # container against its own loopback. Alpine's busybox wget treats 503 as an
-# error.
+# error; -Y off keeps an injected http_proxy from taking the loopback
+# request off-box.
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-  CMD wget -q -O /dev/null http://127.0.0.1:3000/health/live || exit 1
+  CMD wget -q -Y off -O /dev/null http://127.0.0.1:3000/health/live || exit 1
