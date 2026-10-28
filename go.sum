@@ -43,8 +43,8 @@ github.com/go-core-fx/httpfx v0.2.0 h1:eeW/S5rH0Bd29q0pvAaXl3pExWOfrpa60Rf+1hcPv
 github.com/go-core-fx/httpfx v0.2.0/go.mod h1:CiPTnhEO2vrMbG7/QC5/N4xNEchh+VPoM8tRtSG65ts=
 github.com/go-core-fx/logger v0.0.1 h1:e3iJPEfV09fAZnVdROhcpDEbw7DHaNfY/OWCLX0wipA=
 github.com/go-core-fx/logger v0.0.1/go.mod h1:dvExTnpqUry/Qr0x0rg8UiKVUPv3PBb1JT/0llX5NWc=
-github.com/go-core-fx/telegofx v0.6.1-0.20261024115656-0a5b05201131 h1:Trr4ZtXOnlF9f6T7hjj1z0HZ6Jkh3mZM5xmNP2leIVg=
-github.com/go-core-fx/telegofx v0.6.1-0.20261024115656-0a5b05201131/go.mod h1:LcmefDRtBZ+dOu4VgaHEuY47ge3q17Cg66Z6iseevDY=
+github.com/go-core-fx/telegofx v0.6.1-0.20261028001104-66e5505034c6 h1:7oR7Afo2ZTIfabNP0vhAV2/Y2F8BafDS2Dcx47KeVmU=
+github.com/go-core-fx/telegofx v0.6.1-0.20261028001104-66e5505034c6/go.mod h1:LcmefDRtBZ+dOu4VgaHEuY47ge3q17Cg66Z6iseevDY=
 github.com/go-logr/logr v1.4.4 h1:tG4xh9yMsRCAiodLVTxyrkzSZ9+o0L1Kg/+cPVcbP/8=
 github.com/go-logr/logr v1.4.4/go.mod h1:9T104GzyrTigFIr8wt5mBrctHMim0Nb2HLGrmQ40KvY=
 github.com/go-logr/stdr v1.2.2 h1:hSWxHoqTgW2S2qGc0LTAI563KZ5YKYRhT3MFKZMbjag=

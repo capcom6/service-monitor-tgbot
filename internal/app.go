@@ -11,6 +11,7 @@ import (
 	"github.com/capcom6/service-monitor-tgbot/internal/sender"
 	"github.com/capcom6/service-monitor-tgbot/internal/server"
 	"github.com/capcom6/service-monitor-tgbot/internal/storage"
+	"github.com/capcom6/service-monitor-tgbot/internal/telegram"
 	"github.com/go-core-fx/fiberfx"
 	"github.com/go-core-fx/healthfx"
 	"github.com/go-core-fx/httpfx"
@@ -45,6 +46,7 @@ func Run(version healthfx.Version) {
 		//
 		// APP MODULES
 		config.Module(),
+		telegram.Module(),
 		// db.Module(),
 		server.Module(),
 		// bot.Module(),

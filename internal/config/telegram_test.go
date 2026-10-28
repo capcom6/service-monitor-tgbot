@@ -2,10 +2,10 @@ package config_test
 
 // These tests measure the production Telegram transport path: the TELEGRAM__*
 // environment keys through config.Module's provider mapping, and the module
-// graph the app boots (httpfx + telegofx + the telegram sender module).
-// Everything is construction-only - fx.New never starts, so no polling begins
-// and no packet leaves the machine: the rejection rows stop inside httpfx or
-// telego's token gate.
+// graph the app boots (httpfx + telegram + telegofx). Everything is
+// construction-only - fx.New never starts, so no polling begins and no packet
+// leaves the machine: the rejection rows stop inside telegram.Validate, httpfx
+// or telego's token gate.
 //
 // The config is driven through the real env path (t.Setenv, so these tests are
 // deliberately not parallel), because the mapping itself is what is measured.
@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/capcom6/service-monitor-tgbot/internal/config"
-	"github.com/capcom6/service-monitor-tgbot/internal/sender"
+	"github.com/capcom6/service-monitor-tgbot/internal/telegram"
 	"github.com/go-core-fx/httpfx"
 	"github.com/go-core-fx/logger"
 	"github.com/go-core-fx/telegofx"
@@ -49,18 +49,19 @@ func setTelegramEnv(t *testing.T, token, proxyURL, timeout string) {
 }
 
 // TestModule_TelegramTransportMapping pins what config.Module hands the
-// transport: telegofx gets the token and the polling mode, httpfx gets the
-// proxy and the timeout, and the remaining httpfx fields stay at their
-// inherit-the-defaults zero.
+// transport: telegofx gets the token and the polling mode, telegram.Config gets
+// the proxy and the timeout for the consumer to validate and apply, and the
+// app-wide httpfx.Config stays at its inherit-the-defaults zero.
 func TestModule_TelegramTransportMapping(t *testing.T) {
 	setTelegramEnv(t, mappingToken, acceptedProxy, mappingTimeout)
 
 	var tgCfg telegofx.Config
+	var tgTransportCfg telegram.Config
 	var httpCfg httpfx.Config
 
 	err := fx.New(
 		config.Module(),
-		fx.Populate(&tgCfg, &httpCfg),
+		fx.Populate(&tgCfg, &tgTransportCfg, &httpCfg),
 		fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
 	).Err()
 	if err != nil {
@@ -73,23 +74,46 @@ func TestModule_TelegramTransportMapping(t *testing.T) {
 	if tgCfg.Mode != telegofx.ModePolling {
 		t.Errorf("telegofx mode = %q, want %q", tgCfg.Mode, telegofx.ModePolling)
 	}
-	if httpCfg.ProxyURL != acceptedProxy {
-		t.Errorf("httpfx proxy URL = %q, want %q", httpCfg.ProxyURL, acceptedProxy)
+	if tgTransportCfg.ProxyURL != acceptedProxy {
+		t.Errorf("telegram proxy URL = %q, want %q", tgTransportCfg.ProxyURL, acceptedProxy)
 	}
-	if httpCfg.Timeout != 6*time.Minute {
-		t.Errorf("httpfx timeout = %s, want %s", httpCfg.Timeout, 6*time.Minute)
+	if tgTransportCfg.Timeout != 6*time.Minute {
+		t.Errorf("telegram timeout = %s, want %s", tgTransportCfg.Timeout, 6*time.Minute)
 	}
-	if httpCfg.TLS != (httpfx.TLSConfig{}) {
-		t.Errorf("httpfx TLS = %+v, want the inherit-the-defaults zero", httpCfg.TLS)
+	if httpCfg != (httpfx.Config{}) {
+		t.Errorf("httpfx config = %+v, want the inherit-the-defaults zero", httpCfg)
+	}
+}
+
+// TestModule_ShortTimeoutRejected pins startup rejection of a telegram timeout
+// that cannot outlive telegofx's fixed 8s getUpdates long-poll hold: the
+// telegram module validates before it builds the bot's client, so the graph
+// never resolves and no polling cycle can be cancelled mid-hold.
+func TestModule_ShortTimeoutRejected(t *testing.T) {
+	setTelegramEnv(t, mappingToken, acceptedProxy, "8s")
+
+	var tgOpts []telegofx.Option
+
+	err := fx.New(
+		config.Module(),
+		httpfx.Module(),
+		telegram.Module(),
+		fx.Populate(&tgOpts),
+		fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
+	).Err()
+	if err == nil {
+		t.Fatal("graph(timeout=8s) resolved, want a startup failure")
+	}
+	if !errors.Is(err, telegram.ErrConfigInvalid) {
+		t.Errorf("error = %v, want errors.Is telegram.ErrConfigInvalid", err)
 	}
 }
 
 // TestModule_TelegramGraphGates pins the startup failure order of the wiring the
-// app actually boots (config + httpfx + telegofx with router + sender): the
-// httpfx client is built as a dependency of telegofx.New, so a rejected proxy
-// surfaces first, and only an accepted proxy lets telego's token gate run. The
-// empty-token row also proves sender.Module supplies the []telego.BotOption
-// telegofx.New requires: without it dig would fail with a missing type instead.
+// app actually boots (config + httpfx + telegram + telegofx with router): the
+// bot's client is built as a dependency of telegofx.New via []telegofx.Option,
+// so a rejected proxy surfaces first, and only an accepted proxy lets telego's
+// token gate run.
 func TestModule_TelegramGraphGates(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -112,8 +136,8 @@ func TestModule_TelegramGraphGates(t *testing.T) {
 				logger.Module(),
 				httpfx.Module(),
 				config.Module(),
+				telegram.Module(),
 				telegofx.Module(telegofx.WithRouter()),
-				sender.Module(),
 				fx.WithLogger(func() fxevent.Logger { return fxevent.NopLogger }),
 			).Err()
 			if err == nil {

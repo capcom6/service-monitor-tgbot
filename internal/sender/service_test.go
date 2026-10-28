@@ -59,8 +59,10 @@ func TestService_Send(t *testing.T) {
 
 	bot, err := telegofx.New(
 		telegofx.Config{Token: testToken, Mode: telegofx.ModePolling},
-		&http.Client{Timeout: time.Second},
-		[]telego.BotOption{telego.WithAPIServer(server.URL)},
+		[]telegofx.Option{
+			telegofx.WithHTTPClient(&http.Client{Timeout: time.Second}),
+			telegofx.WithBotOptions(telego.WithAPIServer(server.URL)),
+		},
 		zap.NewNop(),
 	)
 	if err != nil {

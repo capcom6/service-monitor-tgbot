@@ -197,8 +197,8 @@ Health probes are served on the HTTP server address (`HTTP__ADDRESS`, default `1
 | `/health/ready`           | none — answers `200 OK` for as long as the server runs     |
 | `/health/startup`         | none — answers `200 OK` for as long as the server runs     |
 
-- **`telegram:api`** is the polling-loop watchdog. It reports the seconds since the last completed Telegram Bot API call (`-1` while none has completed) and turns the liveness endpoints red — HTTP **503** — once no call has completed for 3 × `TELEGRAM__TIMEOUT`.
-- That catches the failure mode nothing else reports: a polling loop wedged on a connection that never returns and never errors. Requests that fail fast — network outage, dead proxy, rejected credentials — still count as completed calls, so the check deliberately stays green while Telegram is unreachable; watch the logs for those.
+- **`telegram:api`** is the polling-loop watchdog. It reports the seconds since the last completed `getUpdates` long-poll request (`-1` while none has completed) and turns the liveness endpoints red — HTTP **503** — once no poll has completed for 3 × `TELEGRAM__TIMEOUT`. Sends and other Bot API calls do not refresh it — the check watches the receive loop, not outbound traffic.
+- That catches the failure mode nothing else reports: a polling loop wedged on a connection that never returns and never errors. Polls that fail fast — network outage, dead proxy, rejected credentials — still count as completed requests, so the check deliberately stays green while Telegram is unreachable; watch the logs for those.
 
 ```bash
 curl -i http://127.0.0.1:3000/health/live

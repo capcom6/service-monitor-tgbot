@@ -10,7 +10,7 @@ require (
 	github.com/go-core-fx/healthfx v0.1.0
 	github.com/go-core-fx/httpfx v0.2.0
 	github.com/go-core-fx/logger v0.0.1
-	github.com/go-core-fx/telegofx v0.6.1-0.20261024115656-0a5b05201131
+	github.com/go-core-fx/telegofx v0.6.1-0.20261028001104-66e5505034c6
 	github.com/gofiber/fiber/v2 v2.52.15
 	github.com/mymmrac/telego v1.12.1
 	github.com/redis/go-redis/v9 v9.22.0

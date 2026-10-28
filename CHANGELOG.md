@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Periodic heartbeat messages sent on a configurable interval (`heartbeat.enabled`, `heartbeat.interval`, `heartbeat.chatId` config fields, `HEARTBEAT__*` environment variables)
 - `heartbeat` message template with `TotalServices`, `OnlineServices`, `OfflineServices`, and `CheckedAt` variables
 - Separate chat ID for heartbeat messages, falling back to the main Telegram chat ID when not set
-- `telegram:api` liveness check — `/health` and `/health/live` answer HTTP 503 once no Telegram API call has completed for 3 × `telegram.timeout`, catching a polling loop that is wedged without errors (requests that fail fast keep it green; see Health Endpoints in the README)
+- `telegram:api` liveness check — `/health` and `/health/live` answer HTTP 503 once no `getUpdates` request has completed for 3 × `telegram.timeout`, catching a polling loop that is wedged without errors (sends do not refresh it; polls that fail fast keep it green; see Health Endpoints in the README)
 - Docker image `HEALTHCHECK` on `/health/live` — the published image reports unhealthy when that check fails, so an orchestrator restarts a wedged bot instead of leaving it silent (port 3000, must match `HTTP__ADDRESS`)
 
 ### Changed
