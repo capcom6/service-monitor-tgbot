@@ -13,33 +13,33 @@ import (
 type Service struct {
 	cfg Config
 
-	sender   *sender.Service
-	monitor  *monitor.Service
-	messages *messages.Service
+	senderSvc   *sender.Service
+	monitorSvc  *monitor.Service
+	messagesSvc *messages.Service
 
 	logger *zap.Logger
 }
 
 func NewService(
 	cfg Config,
-	sender *sender.Service,
-	monitor *monitor.Service,
-	messages *messages.Service,
+	senderSvc *sender.Service,
+	monitorSvc *monitor.Service,
+	messagesSvc *messages.Service,
 	logger *zap.Logger,
 ) *Service {
 	return &Service{
 		cfg: cfg,
 
-		sender:   sender,
-		monitor:  monitor,
-		messages: messages,
+		senderSvc:   senderSvc,
+		monitorSvc:  monitorSvc,
+		messagesSvc: messagesSvc,
 
 		logger: logger,
 	}
 }
 
 func (s *Service) Run(ctx context.Context) error {
-	ch, err := s.monitor.Monitor(ctx)
+	ch, err := s.monitorSvc.Monitor(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to start monitoring services: %w", err)
 	}
@@ -51,7 +51,7 @@ func (s *Service) Run(ctx context.Context) error {
 
 		var msg string
 		if v.State == monitor.ServiceStateOffline {
-			msg, err = s.messages.Offline(
+			msg, err = s.messagesSvc.Offline(
 				messages.OfflineContext{
 					OnlineContext: messages.OnlineContext{
 						Name:      v.Name,
@@ -62,7 +62,7 @@ func (s *Service) Run(ctx context.Context) error {
 				},
 			)
 		} else {
-			msg, err = s.messages.Online(messages.OnlineContext{
+			msg, err = s.messagesSvc.Online(messages.OnlineContext{
 				Name:      v.Name,
 				ChangedAt: v.ChangedAt,
 				Duration:  duration,
@@ -77,7 +77,7 @@ func (s *Service) Run(ctx context.Context) error {
 			continue
 		}
 
-		if sendErr := s.sender.Send(ctx, s.cfg.ChatID, msg); sendErr != nil {
+		if sendErr := s.senderSvc.Send(ctx, s.cfg.ChatID, msg); sendErr != nil {
 			s.logger.Error("failed to send notification",
 				zap.String("service_name", v.Name),
 				zap.String("service_id", v.ID),

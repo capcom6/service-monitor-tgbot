@@ -15,9 +15,9 @@ import (
 
 // Handler is the /status command: it replies with the current services list.
 type Handler struct {
-	monitor  *monitor.Service
-	messages *messages.Service
-	sender   *sender.Service
+	monitorSvc  *monitor.Service
+	messagesSvc *messages.Service
+	senderSvc   *sender.Service
 }
 
 // New constructs the status handler. It returns handler.Handler - not the
@@ -25,14 +25,14 @@ type Handler struct {
 // concrete return type would make the []handler.Handler slice resolve empty
 // with no error.
 func New(
-	monitor *monitor.Service,
-	messages *messages.Service,
-	sender *sender.Service,
+	monitorSvc *monitor.Service,
+	messagesSvc *messages.Service,
+	senderSvc *sender.Service,
 ) handler.Handler {
 	return &Handler{
-		monitor:  monitor,
-		messages: messages,
-		sender:   sender,
+		monitorSvc:  monitorSvc,
+		messagesSvc: messagesSvc,
+		senderSvc:   senderSvc,
 	}
 }
 
@@ -48,9 +48,9 @@ func (h *Handler) Register(router *telegofx.Router) {
 func (h *Handler) handleStatus(ctx *th.Context, update telego.Update) error {
 	chatID := update.Message.Chat.ID
 
-	services := h.monitor.GetCurrentStatuses()
+	services := h.monitorSvc.GetCurrentStatuses()
 	if len(services) == 0 {
-		if err := h.sender.Send(ctx, chatID, "No services configured."); err != nil {
+		if err := h.senderSvc.Send(ctx, chatID, "No services configured."); err != nil {
 			return fmt.Errorf("send empty status response: %w", err)
 		}
 
@@ -62,12 +62,12 @@ func (h *Handler) handleStatus(ctx *th.Context, update telego.Update) error {
 		data[i] = messages.NewServiceState(service.Name, string(service.State), service.Error, service.ChangedAt)
 	}
 
-	msg, err := h.messages.ServicesList(data)
+	msg, err := h.messagesSvc.ServicesList(data)
 	if err != nil {
 		return fmt.Errorf("render services list: %w", err)
 	}
 
-	if sendErr := h.sender.Send(ctx, chatID, msg); sendErr != nil {
+	if sendErr := h.senderSvc.Send(ctx, chatID, msg); sendErr != nil {
 		return fmt.Errorf("send services list: %w", sendErr)
 	}
 

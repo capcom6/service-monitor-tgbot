@@ -12,11 +12,13 @@ import (
 
 // Service implements the heartbeat functionality.
 type Service struct {
-	config      Config
+	config Config
+
 	monitorSvc  *monitor.Service
 	messagesSvc *messages.Service
-	sender      *sender.Service
-	logger      *zap.Logger
+	senderSvc   *sender.Service
+
+	logger *zap.Logger
 }
 
 // New creates a new heartbeat Service.
@@ -24,14 +26,14 @@ func New(
 	config Config,
 	monitorSvc *monitor.Service,
 	messagesSvc *messages.Service,
-	sender *sender.Service,
+	senderSvc *sender.Service,
 	logger *zap.Logger,
 ) *Service {
 	return &Service{
 		config:      config,
 		monitorSvc:  monitorSvc,
 		messagesSvc: messagesSvc,
-		sender:      sender,
+		senderSvc:   senderSvc,
 		logger:      logger,
 	}
 }
@@ -91,7 +93,7 @@ func (s *Service) sendHeartbeat(ctx context.Context) {
 	}
 
 	chatID := s.config.ChatID
-	if sendErr := s.sender.Send(ctx, chatID, msg); sendErr != nil {
+	if sendErr := s.senderSvc.Send(ctx, chatID, msg); sendErr != nil {
 		s.logger.Error("failed to send heartbeat", zap.Error(sendErr))
 	}
 }
