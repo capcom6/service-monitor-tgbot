@@ -36,6 +36,7 @@
   - [Commands](#commands)
   - [Heartbeat](#heartbeat)
   - [API Documentation](#api-documentation)
+  - [Health Endpoints](#health-endpoints)
 - [Examples](#examples)
   - [HTTP service monitoring example](#http-service-monitoring-example)
   - [TCP service monitoring example](#tcp-service-monitoring-example)
@@ -71,7 +72,7 @@ The bot monitors the availability of HTTP(S) and TCP services and notifies a Tel
 - Pluggable storage backends: YAML file or Redis
 - `/status` command for querying current service states
 - Periodic heartbeat messages
-- Telegram SOCKS5 proxy support
+- Telegram SOCKS5/SOCKS5h proxy support
 - OpenAPI/Swagger documentation
 - Prometheus metrics endpoint
 
@@ -186,6 +187,25 @@ Disable it with `HTTP__OPENAPI__ENABLED=false` or the `http.openapi.enabled: fal
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
+### Health Endpoints
+
+Health probes are served on the HTTP server address (`HTTP__ADDRESS`, default `127.0.0.1:3000`):
+
+| Endpoint                  | Checks                                                    |
+| ------------------------- | --------------------------------------------------------- |
+| `/health`, `/health/live` | `system:goroutines`, `system:memory`, `telegram:api`       |
+| `/health/ready`           | none — answers `200 OK` for as long as the server runs     |
+| `/health/startup`         | none — answers `200 OK` for as long as the server runs     |
+
+- **`telegram:api`** is the polling-loop watchdog. It reports the seconds since the last completed `getUpdates` long-poll request (`-1` while none has completed) and turns the liveness endpoints red — HTTP **503** — once no poll has completed for 3 × `TELEGRAM__TIMEOUT`. Sends and other Bot API calls do not refresh it — the check watches the receive loop, not outbound traffic.
+- That catches the failure mode nothing else reports: a polling loop wedged on a connection that never returns and never errors. Polls that fail fast — network outage, dead proxy, rejected credentials — still count as completed requests, so the check deliberately stays green while Telegram is unreachable; watch the logs for those.
+
+```bash
+curl -i http://127.0.0.1:3000/health/live
+```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 <!-- EXAMPLES -->
 ## Examples
 
@@ -248,16 +268,16 @@ Configuration is loaded in order: defaults < YAML file < `.env` file < environme
 | `HTTP__OPENAPI__PUBLIC_HOST` | Public hostname in OpenAPI spec                            | (empty)                   | `api.example.com`                   |
 | `HTTP__OPENAPI__PUBLIC_PATH` | Path prefix for OpenAPI docs                               | (empty)                   | `/docs`                             |
 | `TELEGRAM__TOKEN`            | Telegram Bot API token (required)                          | —                         | `123456:ABC-DEF...`                 |
-| `TELEGRAM__CHATID`           | Target chat/group/channel ID (required)                    | —                         | `-1001234567890`                    |
-| `TELEGRAM__PROXY_URL`        | SOCKS5 proxy for Telegram API                              | (empty)                   | `socks5://user:pass@127.0.0.1:1080` |
-| `TELEGRAM__TIMEOUT`          | Telegram API client timeout                                | `1m`                      | `30s`                               |
+| `TELEGRAM__CHATID`           | Target chat/group/channel ID (required; YAML wins if set)  | —                         | `-1001234567890`                    |
+| `TELEGRAM__PROXY_URL`        | SOCKS5 proxy for Telegram API (`socks5://`/`socks5h://`)    | (empty)                   | `socks5h://127.0.0.1:8888`          |
+| `TELEGRAM__TIMEOUT`          | Telegram API request timeout (keep above the 8s long poll)  | `1m`                      | `30s`                               |
 | `TELEGRAM__MESSAGES`         | Custom message templates (JSON object)                     | (built-in defaults)       | `{"online":"✅ {{.Name}}"}`          |
 | `HEARTBEAT__ENABLED`         | Enable periodic heartbeat messages                         | `false`                   | `true`                              |
 | `HEARTBEAT__INTERVAL`        | Heartbeat send interval                                    | `6h`                      | `1h`                                |
 | `HEARTBEAT__CHATID`          | Target chat for heartbeat messages                         | (uses `TELEGRAM__CHATID`) | `-1001234567890`                    |
 | `STORAGE__DSN`               | Storage backend DSN                                        | `file://$CONFIG_PATH`     | `redis://localhost:6379/0`          |
 
-> **Note:** Environment variable names use `__` (double underscore) as the separator for nested config keys (e.g., `TELEGRAM__TOKEN` maps to `telegram.token`). A `.env` file in the working directory is loaded automatically.
+> **Note:** Environment variable names use `__` (double underscore) as the separator for nested config keys (e.g., `TELEGRAM__TOKEN` maps to `telegram.token`). A `.env` file in the working directory is loaded automatically. Two keys need care: the proxy is read only from `TELEGRAM__PROXY_URL` or the YAML key `telegram.proxy_url` (the camelCase `proxyUrl` is ignored), and a `chatId` present in the YAML wins over `TELEGRAM__CHATID`.
 
 ### YAML Config Structure
 
@@ -265,7 +285,7 @@ Configuration is loaded in order: defaults < YAML file < `.env` file < environme
 telegram:
   token: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
   chatId: -1234567890123
-  proxyUrl: socks5://user:pass@127.0.0.1:1080  # optional
+  proxy_url: socks5h://127.0.0.1:8888  # optional, socks5:// or socks5h:// (proxyUrl is not read)
   messages: {}                                 # optional, overrides built-in templates
 
 heartbeat:
@@ -329,6 +349,8 @@ docker run -d \
   --name tgbot \
   ghcr.io/capcom6/service-monitor-tgbot:latest
 ```
+
+The image ships a `HEALTHCHECK` against `/health/live` on port `3000` (it must match `HTTP__ADDRESS`), so an orchestrator marks the container unhealthy and restarts it once the Telegram polling loop has been silent for 3 × `TELEGRAM__TIMEOUT` — see [Health Endpoints](#health-endpoints).
 
 ### GoReleaser
 
@@ -446,7 +468,8 @@ Project Link: [https://github.com/capcom6/service-monitor-tgbot](https://github.
 
 * [Go Fiber](https://gofiber.io/) — Express-inspired web framework
 * [Uber FX](https://uber-go.github.io/fx/) — Dependency injection framework
-* [go-telegram-bot-api](https://github.com/go-telegram-bot-api/telegram-bot-api) — Telegram Bot API client
+* [telego](https://github.com/mymmrac/telego) — Telegram Bot API client
+* [go-core-fx](https://github.com/go-core-fx) — fx modules for this stack: `telegofx`, `httpfx`, `fiberfx`, `healthfx`, `logger`, `config`
 * [go-redis](https://github.com/redis/go-redis) — Redis client for Go
 * [Best README Template](https://github.com/othneildrew/Best-README-Template) — README structure inspiration
 * [Keep a Changelog](https://keepachangelog.com/) — Changelog format

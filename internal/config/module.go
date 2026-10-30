@@ -4,11 +4,14 @@ import (
 	"github.com/capcom6/service-monitor-tgbot/internal/bot"
 	"github.com/capcom6/service-monitor-tgbot/internal/heartbeat"
 	"github.com/capcom6/service-monitor-tgbot/internal/messages"
+	"github.com/capcom6/service-monitor-tgbot/internal/sender"
 	"github.com/capcom6/service-monitor-tgbot/internal/storage"
-	"github.com/capcom6/service-monitor-tgbot/pkg/telegram"
+	"github.com/capcom6/service-monitor-tgbot/internal/telegram"
 	"github.com/go-core-fx/fiberfx"
 	"github.com/go-core-fx/fiberfx/openapi"
+	"github.com/go-core-fx/httpfx"
 	"github.com/go-core-fx/logger"
+	"github.com/go-core-fx/telegofx"
 	"github.com/samber/lo"
 	"go.uber.org/fx"
 )
@@ -34,18 +37,30 @@ func Module() fx.Option {
 				}
 			},
 		),
+		fx.Provide(func(cfg Config) telegofx.Config {
+			return telegofx.Config{
+				Token: cfg.Telegram.Token,
+				Mode:  telegofx.ModePolling,
+			}
+		}),
+		// The app-wide httpfx client stays at its inherit-the-defaults zero:
+		// it carries no transport policy of its own. The bot's proxy and
+		// timeout map to telegram.Config instead, and telegram.Module
+		// validates them and overrides the bot's client through the
+		// httpfx.Factory this config seeds.
+		fx.Provide(func() httpfx.Config {
+			return httpfx.Config{}
+		}),
 		fx.Provide(func(cfg Config) telegram.Config {
 			return telegram.Config{
-				Token:     cfg.Telegram.Token,
-				ParseMode: "MarkdownV2",
-				ProxyURL:  cfg.Telegram.ProxyURL,
-				Timeout:   cfg.Telegram.Timeout,
+				ProxyURL: cfg.Telegram.ProxyURL,
+				Timeout:  cfg.Telegram.Timeout,
 			}
 		}),
 		fx.Provide(func(cfg Config) messages.Config {
 			return messages.Config{
 				Templates: cfg.Telegram.Messages,
-				EscapeFn:  nil,
+				EscapeFn:  sender.EscapeText,
 			}
 		}),
 		fx.Provide(func(cfg Config) bot.Config {

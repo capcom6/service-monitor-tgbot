@@ -1,7 +1,7 @@
 telegram:
   token: # bot token
-  chatId: -1234567890123 # chat ID for notifications
-  proxyUrl: socks5://<username>:<password>@127.0.0.1:1080 # optional: SOCKS5 proxy for Telegram API
+  chatId: -1234567890123 # chat ID for notifications; this YAML value wins over TELEGRAM__CHATID
+  proxy_url: socks5://user:password@127.0.0.1:1080 # optional: SOCKS5 proxy (socks5:// or socks5h://); can also be set with TELEGRAM__PROXY_URL
   messages:
     online: "✅ {{.Name}} is *online*" # message text when service goes "online"
     offline: "❌ {{.Name}} is *offline*: {{.Error}}" # message text when service goes "offline"
