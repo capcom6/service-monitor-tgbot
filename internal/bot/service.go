@@ -6,40 +6,40 @@ import (
 
 	"github.com/capcom6/service-monitor-tgbot/internal/messages"
 	"github.com/capcom6/service-monitor-tgbot/internal/monitor"
-	"github.com/capcom6/service-monitor-tgbot/pkg/telegram"
+	"github.com/capcom6/service-monitor-tgbot/internal/sender"
 	"go.uber.org/zap"
 )
 
 type Service struct {
 	cfg Config
 
-	bot      *telegram.Bot
-	monitor  *monitor.Service
-	messages *messages.Service
+	senderSvc   *sender.Service
+	monitorSvc  *monitor.Service
+	messagesSvc *messages.Service
 
 	logger *zap.Logger
 }
 
 func NewService(
 	cfg Config,
-	bot *telegram.Bot,
-	monitor *monitor.Service,
-	messages *messages.Service,
+	senderSvc *sender.Service,
+	monitorSvc *monitor.Service,
+	messagesSvc *messages.Service,
 	logger *zap.Logger,
 ) *Service {
 	return &Service{
 		cfg: cfg,
 
-		bot:      bot,
-		monitor:  monitor,
-		messages: messages,
+		senderSvc:   senderSvc,
+		monitorSvc:  monitorSvc,
+		messagesSvc: messagesSvc,
 
 		logger: logger,
 	}
 }
 
 func (s *Service) Run(ctx context.Context) error {
-	ch, err := s.monitor.Monitor(ctx)
+	ch, err := s.monitorSvc.Monitor(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to start monitoring services: %w", err)
 	}
@@ -51,7 +51,7 @@ func (s *Service) Run(ctx context.Context) error {
 
 		var msg string
 		if v.State == monitor.ServiceStateOffline {
-			msg, err = s.messages.Offline(
+			msg, err = s.messagesSvc.Offline(
 				messages.OfflineContext{
 					OnlineContext: messages.OnlineContext{
 						Name:      v.Name,
@@ -62,7 +62,7 @@ func (s *Service) Run(ctx context.Context) error {
 				},
 			)
 		} else {
-			msg, err = s.messages.Online(messages.OnlineContext{
+			msg, err = s.messagesSvc.Online(messages.OnlineContext{
 				Name:      v.Name,
 				ChangedAt: v.ChangedAt,
 				Duration:  duration,
@@ -77,7 +77,7 @@ func (s *Service) Run(ctx context.Context) error {
 			continue
 		}
 
-		if _, sendErr := s.bot.SendMessage(s.cfg.ChatID, msg); sendErr != nil {
+		if sendErr := s.senderSvc.Send(ctx, s.cfg.ChatID, msg); sendErr != nil {
 			s.logger.Error("failed to send notification",
 				zap.String("service_name", v.Name),
 				zap.String("service_id", v.ID),
@@ -86,34 +86,4 @@ func (s *Service) Run(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func (s *Service) HandleStatusCommand(_ context.Context, cmd telegram.Command) {
-	services := s.monitor.GetCurrentStatuses()
-
-	if len(services) == 0 {
-		if _, err := s.bot.SendMessage(cmd.Chat, "No services configured."); err != nil {
-			s.logger.Error("failed to send status response",
-				zap.Error(err))
-		}
-		return
-	}
-
-	context := make(messages.ServicesListContext, len(services))
-
-	for i, service := range services {
-		context[i] = messages.NewServiceState(service.Name, string(service.State), service.Error, service.ChangedAt)
-	}
-
-	msg, err := s.messages.ServicesList(context)
-	if err != nil {
-		s.logger.Error("failed to render services list template",
-			zap.Error(err))
-		return
-	}
-
-	if _, sendErr := s.bot.SendMessage(cmd.Chat, msg); sendErr != nil {
-		s.logger.Error("failed to send services list",
-			zap.Error(sendErr))
-	}
 }
